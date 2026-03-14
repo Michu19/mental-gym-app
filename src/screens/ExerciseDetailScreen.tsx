@@ -9,7 +9,7 @@ import * as Haptics from 'expo-haptics';
 
 import { FontSize, Spacing, Radius, type ColorScheme } from '../theme';
 import { EXERCISES_BY_ID, formatTime } from '../data/exercises';
-import { useTimer, useNote } from '../hooks/useProgress';
+import { useTimer, useNoteHistory } from '../hooks/useProgress';
 import { CategoryBadge, CheckButton, Divider, SectionLabel } from '../components/ui';
 import { useTheme } from '../theme/ThemeContext';
 
@@ -25,7 +25,8 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
   const { colors, categoryColors } = useTheme();
   const accentColor = categoryColors[ex.category];
   const [done, setDone] = useState(false);
-  const { note, saveNote } = useNote(exerciseId);
+  const [draftNote, setDraftNote] = useState('');
+  const { notes, addNote, deleteNote } = useNoteHistory(exerciseId);
 
   const timer = useTimer(ex.timeMin * 60);
 
@@ -145,19 +146,72 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
 
         {/* Notes */}
         <View style={styles.section}>
-          <SectionLabel text="Moje notatki" color={accentColor} />
-          <TextInput
-            style={[
-              styles.noteInput,
-              { borderColor: note.length > 0 ? accentColor + '60' : colors.border },
-            ]}
-            multiline
-            placeholder="Zapisz swoje przemyślenia po ćwiczeniu…"
-            placeholderTextColor={colors.textMuted}
-            value={note}
-            onChangeText={saveNote}
-            textAlignVertical="top"
-          />
+          <View style={styles.noteHeader}>
+            <SectionLabel text="Historia notatek" color={accentColor} />
+            {notes.length > 0 && (
+              <View style={[styles.noteCount, { backgroundColor: accentColor + '22', borderColor: accentColor + '55' }]}>
+                <Text style={[styles.noteCountText, { color: accentColor }]}>{notes.length}</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.noteAdd}>
+            <TextInput
+              style={[styles.noteInput, { borderColor: draftNote.length > 0 ? accentColor + '80' : colors.border }]}
+              multiline
+              placeholder="Zapisz przemyślenia po ćwiczeniu…"
+              placeholderTextColor={colors.textMuted}
+              value={draftNote}
+              onChangeText={setDraftNote}
+              textAlignVertical="top"
+            />
+            <TouchableOpacity
+              onPress={async () => { await addNote(draftNote); setDraftNote(''); }}
+              activeOpacity={0.75}
+              disabled={!draftNote.trim()}
+              style={[
+                styles.noteSaveBtn,
+                draftNote.trim()
+                  ? { backgroundColor: accentColor }
+                  : { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.borderStrong },
+              ]}
+            >
+              <Text style={[styles.noteSaveBtnText, { color: draftNote.trim() ? colors.white : colors.textMuted }]}>
+                Zapisz notatkę
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {notes.length === 0 ? (
+            <View style={[styles.noteEmpty, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
+              <Text style={styles.noteEmptyText}>Brak notatek — dodaj pierwszą po ćwiczeniu 📝</Text>
+            </View>
+          ) : (
+            <View style={styles.noteList}>
+              {notes.map((entry) => {
+                const date = new Date(entry.createdAt);
+                const label = date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                return (
+                  <View key={entry.id} style={[styles.noteEntry, { borderLeftColor: accentColor, borderColor: colors.border }]}>
+                    <View style={styles.noteEntryHeader}>
+                      <View style={[styles.noteEntryDatePill, { backgroundColor: accentColor + '18' }]}>
+                        <Text style={[styles.noteEntryDate, { color: accentColor }]}>{label}</Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => deleteNote(entry.id)}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        style={[styles.noteDeleteBtn, { borderColor: colors.borderStrong }]}
+                      >
+                        <Text style={[styles.noteEntryDelete, { color: colors.textMuted }]}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <Text style={styles.noteEntryText}>{entry.text}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
         </View>
 
         <Divider />
@@ -260,6 +314,16 @@ function makeStyles(colors: ColorScheme) {
     promptText: { fontSize: FontSize.sm, color: colors.textPrimary, lineHeight: 24 },
     tipText: { fontSize: FontSize.sm, color: colors.textMuted, fontStyle: 'italic', lineHeight: 22 },
 
+    noteHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+    noteCount: {
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: Radius.full,
+      borderWidth: 1,
+    },
+    noteCountText: { fontSize: FontSize.xs, fontWeight: '700' },
+
+    noteAdd: { gap: Spacing.sm },
     noteInput: {
       backgroundColor: colors.bgInput,
       borderRadius: Radius.md,
@@ -267,9 +331,45 @@ function makeStyles(colors: ColorScheme) {
       padding: Spacing.md,
       fontSize: FontSize.sm,
       color: colors.textPrimary,
-      minHeight: 120,
+      minHeight: 100,
       lineHeight: 22,
     },
+    noteSaveBtn: {
+      borderRadius: Radius.md,
+      paddingVertical: Spacing.sm,
+      alignItems: 'center',
+    },
+    noteSaveBtnText: { fontWeight: '600', fontSize: FontSize.sm },
+
+    noteEmpty: {
+      borderRadius: Radius.md,
+      borderWidth: 1,
+      padding: Spacing.md,
+      alignItems: 'center',
+    },
+    noteEmptyText: { fontSize: FontSize.sm, color: colors.textMuted, textAlign: 'center', lineHeight: 22 },
+
+    noteList: { gap: Spacing.sm },
+    noteEntry: {
+      backgroundColor: colors.bgCard,
+      borderRadius: Radius.md,
+      borderWidth: 1,
+      borderLeftWidth: 3,
+      padding: Spacing.md,
+      gap: 8,
+    },
+    noteEntryHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    noteEntryDatePill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: Radius.full },
+    noteEntryDate: { fontSize: FontSize.xs, fontWeight: '600', letterSpacing: 0.3 },
+    noteDeleteBtn: {
+      width: 26, height: 26,
+      borderRadius: 13,
+      borderWidth: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    noteEntryDelete: { fontSize: 11, fontWeight: '700' },
+    noteEntryText: { fontSize: FontSize.sm, color: colors.textPrimary, lineHeight: 22 },
   });
 }
 

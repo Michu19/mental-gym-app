@@ -145,6 +145,49 @@ export function useNote(exerciseId: string) {
   return { note, saveNote };
 }
 
+// ─── useNoteHistory ──────────────────────────────────────────────────────
+
+export interface NoteEntry {
+  id: string;      // timestamp string (used as unique key)
+  text: string;
+  createdAt: string; // ISO date string
+}
+
+const NOTES_KEY = (exerciseId: string) => `notes:${exerciseId}`;
+
+export function useNoteHistory(exerciseId: string) {
+  const [notes, setNotes] = useState<NoteEntry[]>([]);
+
+  useEffect(() => {
+    AsyncStorage.getItem(NOTES_KEY(exerciseId)).then((raw) => {
+      if (raw) {
+        try { setNotes(JSON.parse(raw)); } catch {}
+      }
+    });
+  }, [exerciseId]);
+
+  const persist = useCallback(async (next: NoteEntry[]) => {
+    setNotes(next);
+    await AsyncStorage.setItem(NOTES_KEY(exerciseId), JSON.stringify(next));
+  }, [exerciseId]);
+
+  const addNote = useCallback(async (text: string) => {
+    if (!text.trim()) return;
+    const entry: NoteEntry = {
+      id: Date.now().toString(),
+      text: text.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    await persist([entry, ...notes]);
+  }, [notes, persist]);
+
+  const deleteNote = useCallback(async (id: string) => {
+    await persist(notes.filter(n => n.id !== id));
+  }, [notes, persist]);
+
+  return { notes, addNote, deleteNote };
+}
+
 // ─── useTimer ────────────────────────────────────────────────────────────
 
 export function useTimer(initialSeconds: number) {

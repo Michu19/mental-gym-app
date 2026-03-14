@@ -1,6 +1,12 @@
 // src/components/ExerciseCard.tsx
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  TextInput,
+} from "react-native";
 import { FontSize, Radius, Spacing, type ColorScheme } from "../theme";
 import {
   CategoryBadge,
@@ -12,6 +18,7 @@ import {
 import type { Exercise } from "../data/exercises";
 import { formatTime } from "../data/exercises";
 import { useTheme } from "../theme/ThemeContext";
+import { useNoteHistory } from "../hooks/useProgress";
 
 interface Props {
   exercise: Exercise;
@@ -31,8 +38,10 @@ export function ExerciseCard({
   compact,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const [draft, setDraft] = useState("");
   const { colors, categoryColors } = useTheme();
   const accentColor = categoryColors[ex.category];
+  const { notes, addNote } = useNoteHistory(ex.id);
   const styles = makeStyles(colors);
 
   if (compact) {
@@ -110,6 +119,67 @@ export function ExerciseCard({
           </View>
 
           <Text style={styles.tip}>💬 {ex.tip}</Text>
+
+          {/* Quick note */}
+          <View style={styles.noteWrap}>
+            <SectionLabel text="Szybka notatka" color={accentColor} />
+            <View style={styles.noteRow}>
+              <TextInput
+                style={[
+                  styles.noteInput,
+                  {
+                    borderColor:
+                      draft.length > 0 ? accentColor + "80" : colors.border,
+                  },
+                ]}
+                placeholder="Zapisz przemyślenie…"
+                placeholderTextColor={colors.textMuted}
+                value={draft}
+                onChangeText={setDraft}
+                returnKeyType="done"
+                blurOnSubmit
+              />
+              <TouchableOpacity
+                onPress={async () => {
+                  await addNote(draft);
+                  setDraft("");
+                }}
+                activeOpacity={0.75}
+                disabled={!draft.trim()}
+                style={[
+                  styles.noteBtn,
+                  {
+                    backgroundColor: draft.trim()
+                      ? accentColor
+                      : colors.bgElevated,
+                    borderColor: draft.trim()
+                      ? accentColor
+                      : colors.borderStrong,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.noteBtnText,
+                    { color: draft.trim() ? colors.white : colors.textMuted },
+                  ]}
+                >
+                  ✓
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {notes.length > 0 && (
+              <Text style={styles.noteCount}>
+                {notes.length}{" "}
+                {notes.length === 1
+                  ? "notatka"
+                  : notes.length < 5
+                    ? "notatki"
+                    : "notatek"}{" "}
+                — dostępne w szczegółach
+              </Text>
+            )}
+          </View>
 
           <CheckButton done={done} onPress={onToggle} style={styles.checkBtn} />
         </View>
@@ -215,9 +285,41 @@ function makeStyles(colors: ColorScheme) {
       fontSize: FontSize.xs,
       color: colors.textMuted,
       fontStyle: "italic",
-      marginBottom: Spacing.md,
+      marginBottom: Spacing.sm,
       lineHeight: 18,
     },
+
+    noteWrap: { gap: 6, marginBottom: Spacing.md },
+    noteRow: { flexDirection: "row", gap: 8, alignItems: "flex-start" },
+    noteInput: {
+      flex: 1,
+      backgroundColor: colors.bgInput,
+      borderRadius: Radius.md,
+      borderWidth: 1,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 10,
+      fontSize: FontSize.sm,
+      color: colors.textPrimary,
+      minHeight: 120,
+      lineHeight: 22,
+      textAlignVertical: "top",
+    },
+    noteBtn: {
+      width: 38,
+      height: 38,
+      marginTop: 1,
+      borderRadius: Radius.md,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    noteBtnText: { fontSize: 18, fontWeight: "700", lineHeight: 20 },
+    noteCount: {
+      fontSize: FontSize.xs,
+      color: colors.textMuted,
+      fontStyle: "italic",
+    },
+
     checkBtn: { marginTop: Spacing.xs },
 
     doneStrip: {

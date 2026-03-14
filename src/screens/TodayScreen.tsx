@@ -51,6 +51,7 @@ export function TodayScreen() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.dayScroll}
+        style={styles.dayScrollWrap}
       >
         {WEEK_PLAN.map((d, i) => {
           const isToday = i === todayIdx;
@@ -85,7 +86,8 @@ export function TodayScreen() {
 
       {/* Exercise list */}
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 80 }]}
+        style={{ flex: 1 }}
+        contentContainerStyle={[styles.scroll, { paddingBottom: Spacing.lg }]}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={reload} tintColor={colors.textMuted} />}
         showsVerticalScrollIndicator={false}
       >
@@ -124,6 +126,7 @@ function makeStyles(colors: ColorScheme) {
     subtitle: { fontSize: FontSize.xs, color: colors.textMuted, letterSpacing: 3, marginBottom: 2 },
     title: { fontSize: FontSize.xxl, fontWeight: '300', color: colors.textPrimary },
 
+    dayScrollWrap: { height: 62, flexShrink: 0, flexGrow: 0 },
     dayScroll: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, gap: 8 },
     dayPill: {
       paddingHorizontal: Spacing.md,
