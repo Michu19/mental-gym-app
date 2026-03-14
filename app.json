@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Mental Gym",
+    "slug": "mental-gym",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#0A0A0F"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.yourname.mentalgym"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0A0A0F"
+      },
+      "package": "com.yourname.mentalgym"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#0A0A0F"
+        }
+      ],
+      "expo-font",
+      "expo-router"
+    ],
+    "scheme": "mentalgym"
+  }
+}
