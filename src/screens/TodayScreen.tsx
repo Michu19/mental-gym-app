@@ -8,8 +8,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
 import { FontSize, Spacing, Radius, type ColorScheme } from '../theme';
-import { WEEK_PLAN, EXERCISES_BY_ID, getTodayIndex } from '../data/exercises';
+import { EXERCISES_BY_ID, getTodayIndex } from '../data/exercises';
 import { useProgress } from '../hooks/useProgress';
+import { usePlan } from '../hooks/PlanContext';
 import { ExerciseCard } from '../components/ExerciseCard';
 import { ProgressRing } from '../components/ui';
 import { useTheme } from '../theme/ThemeContext';
@@ -20,9 +21,10 @@ export function TodayScreen() {
   const insets = useSafeAreaInsets();
   const { completedCount, isCompleted, toggleExercise, loading, reload } = useProgress();
   const { colors } = useTheme();
+  const { activeDays } = usePlan();
   const [selectedDay, setSelectedDay] = React.useState(todayIdx);
 
-  const dayPlan = WEEK_PLAN[selectedDay];
+  const dayPlan = activeDays[selectedDay];
   const exercises = dayPlan.exerciseIds.map(id => EXERCISES_BY_ID[id]);
   const total = exercises.length;
   const done = exercises.filter(e => isCompleted(e.id)).length;
@@ -53,9 +55,10 @@ export function TodayScreen() {
         contentContainerStyle={styles.dayScroll}
         style={styles.dayScrollWrap}
       >
-        {WEEK_PLAN.map((d, i) => {
+        {activeDays.map((d, i) => {
           const isToday = i === todayIdx;
           const isSelected = i === selectedDay;
+          const planDay = activeDays[i];
           return (
             <TouchableOpacity
               key={i}
@@ -68,7 +71,7 @@ export function TodayScreen() {
               ]}
             >
               <Text style={[styles.dayText, isSelected && { color: colors.textPrimary }]}>
-                {d.shortDay}
+                {planDay.shortDay}
               </Text>
               {isToday && <View style={[styles.todayDot, { backgroundColor: colors.critical }]} />}
             </TouchableOpacity>

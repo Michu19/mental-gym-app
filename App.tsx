@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
 import { AppNavigator } from './src/navigation';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
+import { PlanProvider } from './src/hooks/PlanContext';
 
 function AppContent() {
   const { isDark } = useTheme();
@@ -21,11 +22,13 @@ function AppContent() {
 export default function App() {
   return (
     <ThemeProvider>
-      <GestureHandlerRootView style={styles.root}>
-        <SafeAreaProvider>
-          <AppContent />
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
+      <PlanProvider>
+        <GestureHandlerRootView style={styles.root}>
+          <SafeAreaProvider>
+            <AppContent />
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </PlanProvider>
     </ThemeProvider>
   );
 }

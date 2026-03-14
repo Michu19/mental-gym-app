@@ -13,11 +13,15 @@ import { PlanScreen } from '../screens/PlanScreen';
 import { LibraryScreen } from '../screens/LibraryScreen';
 import { StatsScreen } from '../screens/StatsScreen';
 import { ExerciseDetailScreen } from '../screens/ExerciseDetailScreen';
+import { PlanManagerScreen } from '../screens/PlanManagerScreen';
+import { PlanEditorScreen } from '../screens/PlanEditorScreen';
 import { useTheme } from '../theme/ThemeContext';
 
 export type RootStackParamList = {
   Tabs: undefined;
   ExerciseDetail: { exerciseId: string };
+  PlanManager: undefined;
+  PlanEditor: { planId?: string };
 };
 
 export type TabParamList = {
@@ -94,6 +98,8 @@ export function AppNavigator() {
           component={ExerciseDetailScreen}
           options={{ presentation: 'card' }}
         />
+        <Stack.Screen name="PlanManager" component={PlanManagerScreen} />
+        <Stack.Screen name="PlanEditor" component={PlanEditorScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
