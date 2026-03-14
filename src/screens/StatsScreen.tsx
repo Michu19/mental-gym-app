@@ -17,24 +17,42 @@ import { useTheme } from "../theme/ThemeContext";
 
 const SHORT_DAYS = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"];
 
-function getLastNDates(n: number): string[] {
-  const result: string[] = [];
-  const today = new Date();
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    result.push(d.toISOString().split("T")[0]);
-  }
-  return result;
+function getMonday(offsetWeeks: number): Date {
+  const now = new Date();
+  const dayOfWeek = (now.getDay() + 6) % 7; // Mon=0
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - dayOfWeek + offsetWeeks * 7);
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+}
+
+function getWeekDates(offsetWeeks: number): string[] {
+  const monday = getMonday(offsetWeeks);
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d.toISOString().split("T")[0];
+  });
+}
+
+function formatWeekLabel(offsetWeeks: number): string {
+  const monday = getMonday(offsetWeeks);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const fmt = (d: Date) =>
+    d.toLocaleDateString("pl-PL", { day: "numeric", month: "short" });
+  const year = sunday.getFullYear();
+  return `${fmt(monday)} – ${fmt(sunday)} ${year}`;
 }
 
 export function StatsScreen() {
   const insets = useSafeAreaInsets();
   const { streak, completedCount } = useProgress();
   const { isDark, colors, toggleTheme } = useTheme();
+  const [weekOffset, setWeekOffset] = useState(0);
   const [weekActivity, setWeekActivity] = useState<boolean[]>([]);
 
-  const weekDates = getLastNDates(7);
+  const weekDates = getWeekDates(weekOffset);
   const todayDate = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
@@ -46,7 +64,7 @@ export function StatsScreen() {
       setWeekActivity(results);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [streak]); // re-check when streak changes (i.e. after exercise toggle)
+  }, [streak, weekOffset]); // re-check when streak changes or week navigated
 
   const styles = makeStyles(colors);
 
@@ -95,7 +113,23 @@ export function StatsScreen() {
 
         {/* Weekly heatmap */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Ostatnie 7 dni</Text>
+          <View style={styles.weekNavRow}>
+            <TouchableOpacity
+              onPress={() => setWeekOffset((o) => o - 1)}
+              activeOpacity={0.7}
+              style={styles.weekNavBtn}
+            >
+              <Text style={[styles.weekNavArrow, { color: colors.textSecondary }]}>‹</Text>
+            </TouchableOpacity>
+            <Text style={styles.weekNavLabel}>{formatWeekLabel(weekOffset)}</Text>
+            <TouchableOpacity
+              onPress={() => setWeekOffset((o) => Math.min(0, o + 1))}
+              activeOpacity={0.7}
+              style={styles.weekNavBtn}
+            >
+              <Text style={[styles.weekNavArrow, { color: weekOffset >= 0 ? colors.textMuted : colors.textSecondary }]}>›</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.heatmapRow}>
             {weekDates.map((date, i) => {
               const active = weekActivity[i] ?? false;
@@ -220,6 +254,22 @@ function makeStyles(colors: ColorScheme) {
       fontSize: FontSize.md,
       color: colors.textSecondary,
       marginLeft: 4,
+    },
+
+    weekNavRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: Spacing.sm,
+    },
+    weekNavBtn: { padding: 4, minWidth: 32, alignItems: "center" },
+    weekNavArrow: { fontSize: 24, fontWeight: "300", lineHeight: 28 },
+    weekNavLabel: {
+      fontSize: FontSize.xs,
+      color: colors.textMuted,
+      letterSpacing: 0.5,
+      textAlign: "center",
+      flex: 1,
     },
 
     heatmapRow: { flexDirection: "row", gap: 6, marginTop: 4 },

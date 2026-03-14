@@ -14,6 +14,7 @@ import * as Haptics from "expo-haptics";
 import { FontSize, Spacing, Radius, type ColorScheme } from "../theme";
 import { EXERCISES_BY_ID, formatTime } from "../data/exercises";
 import { useTimer, useNoteHistory } from "../hooks/useProgress";
+import { useProgressContext } from "../hooks/ProgressContext";
 import {
   CategoryBadge,
   CheckButton,
@@ -23,17 +24,20 @@ import {
 import { useTheme } from "../theme/ThemeContext";
 
 interface Props {
-  route: { params: { exerciseId: string } };
+  route: { params: { exerciseId: string; dateStr?: string } };
   navigation: any;
 }
 
 export function ExerciseDetailScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { exerciseId } = route.params;
+  const { exerciseId, dateStr } = route.params;
   const ex = EXERCISES_BY_ID[exerciseId];
   const { colors, categoryColors } = useTheme();
   const accentColor = categoryColors[ex.category];
-  const [done, setDone] = useState(false);
+  const { completedByDate, toggleExercise } = useProgressContext();
+  const todayStr = new Date().toISOString().split("T")[0];
+  const effectiveDateStr = dateStr ?? todayStr;
+  const done = (completedByDate[effectiveDateStr] ?? new Set<string>()).has(exerciseId);
   const [draftNote, setDraftNote] = useState("");
   const { notes, addNote, deleteNote } = useNoteHistory(exerciseId);
 
@@ -52,7 +56,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
 
   const handleDone = async () => {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setDone(true);
+    await toggleExercise(exerciseId, effectiveDateStr);
   };
 
   const styles = makeStyles(colors);

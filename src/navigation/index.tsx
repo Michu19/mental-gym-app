@@ -23,7 +23,7 @@ import { useTheme } from "../theme/ThemeContext";
 
 export type RootStackParamList = {
   Tabs: undefined;
-  ExerciseDetail: { exerciseId: string };
+  ExerciseDetail: { exerciseId: string; dateStr?: string };
   PlanManager: undefined;
   PlanEditor: { planId?: string };
 };

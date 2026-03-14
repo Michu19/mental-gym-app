@@ -29,7 +29,7 @@ function getWeekDateStr(dayIdx: number): string {
   return d.toISOString().split("T")[0];
 }
 
-export function TodayScreen() {
+export function TodayScreen({ navigation }: { navigation?: any }) {
   const insets = useSafeAreaInsets();
   const { toggleExercise, loading, reload, completedByDate } =
     useProgress();
@@ -181,6 +181,12 @@ export function TodayScreen() {
             index={i}
             done={selectedCompletedSet.has(ex.id)}
             onToggle={() => handleToggle(ex.id)}
+            onPress={() =>
+              navigation?.navigate("ExerciseDetail", {
+                exerciseId: ex.id,
+                dateStr: selectedDateStr,
+              })
+            }
           />
         ))}
       </ScrollView>
