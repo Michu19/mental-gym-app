@@ -54,18 +54,34 @@ export function PlanScreen({ navigation }: Props) {
             </Text>
           </TouchableOpacity>
         </View>
-        <View
-          style={[
-            styles.activePlanBadge,
-            {
-              backgroundColor: colors.critical + "18",
-              borderColor: colors.critical + "40",
-            },
-          ]}
-        >
-          <Text style={[styles.activePlanText, { color: colors.critical }]}>
-            Aktywny: {activePlanName}
-          </Text>
+        <View style={styles.planBadgeRow}>
+          <View
+            style={[
+              styles.activePlanBadge,
+              {
+                backgroundColor: colors.critical + "18",
+                borderColor: colors.critical + "40",
+              },
+            ]}
+          >
+            <Text style={[styles.activePlanText, { color: colors.critical }]}>
+              Aktywny: {activePlanName}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() =>
+              navigation?.navigate(
+                "PlanEditor",
+                activePlanId !== "default" ? { planId: activePlanId } : {},
+              )
+            }
+            activeOpacity={0.75}
+            style={styles.editPlanBtn}
+          >
+            <Text style={[styles.editPlanBtnText, { color: colors.textSecondary }]}>
+              ✎ Edytuj
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -238,6 +254,7 @@ function makeStyles(colors: ColorScheme) {
       borderWidth: 1,
     },
     manageBtnText: { fontSize: FontSize.sm, fontWeight: "600" },
+    planBadgeRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
     activePlanBadge: {
       alignSelf: "flex-start",
       paddingHorizontal: Spacing.sm,
@@ -246,6 +263,8 @@ function makeStyles(colors: ColorScheme) {
       borderWidth: 1,
     },
     activePlanText: { fontSize: FontSize.xs, fontWeight: "600" },
+    editPlanBtn: { paddingHorizontal: Spacing.xs, paddingVertical: 4 },
+    editPlanBtnText: { fontSize: FontSize.xs, fontWeight: "600" },
     subtitle: {
       fontSize: FontSize.xs,
       color: colors.textMuted,

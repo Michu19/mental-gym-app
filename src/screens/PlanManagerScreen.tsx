@@ -113,7 +113,15 @@ export function PlanManagerScreen({ navigation }: Props) {
                     <Text style={[styles.btnPrimaryText, { color: colors.white }]}>Aktywuj</Text>
                   </TouchableOpacity>
                 )}
-                {!isDefault && (
+                {isDefault ? (
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('PlanEditor', {})}
+                    activeOpacity={0.75}
+                    style={[styles.btnOutline, { borderColor: colors.borderStrong }]}
+                  >
+                    <Text style={[styles.btnOutlineText, { color: colors.textSecondary }]}>Duplikuj</Text>
+                  </TouchableOpacity>
+                ) : (
                   <>
                     <TouchableOpacity
                       onPress={() => navigation.navigate('PlanEditor', { planId: plan.id })}
