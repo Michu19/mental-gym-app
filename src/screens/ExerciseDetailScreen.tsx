@@ -2,15 +2,16 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity,
+  TouchableOpacity, TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
-import { Colors, FontSize, Spacing, Radius, CategoryColors } from '../theme';
+import { FontSize, Spacing, Radius, type ColorScheme } from '../theme';
 import { EXERCISES_BY_ID, formatTime } from '../data/exercises';
-import { useTimer } from '../hooks/useProgress';
+import { useTimer, useNote } from '../hooks/useProgress';
 import { CategoryBadge, CheckButton, Divider, SectionLabel } from '../components/ui';
+import { useTheme } from '../theme/ThemeContext';
 
 interface Props {
   route: { params: { exerciseId: string } };
@@ -21,8 +22,10 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { exerciseId } = route.params;
   const ex = EXERCISES_BY_ID[exerciseId];
-  const accentColor = CategoryColors[ex.category];
+  const { colors, categoryColors } = useTheme();
+  const accentColor = categoryColors[ex.category];
   const [done, setDone] = useState(false);
+  const { note, saveNote } = useNote(exerciseId);
 
   const timer = useTimer(ex.timeMin * 60);
 
@@ -42,12 +45,14 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
     setDone(true);
   };
 
+  const styles = makeStyles(colors);
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Nav bar */}
       <View style={styles.navbar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.7}>
-          <Text style={styles.backText}>‹ Wróć</Text>
+          <Text style={[styles.backText, { color: accentColor }]}>‹ Wróć</Text>
         </TouchableOpacity>
         <Text style={styles.navTitle}>#{ex.id}</Text>
       </View>
@@ -55,6 +60,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + Spacing.xl }]}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Hero */}
         <View style={[styles.hero, { backgroundColor: accentColor + '12', borderColor: accentColor + '30' }]}>
@@ -77,8 +83,10 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
         <View style={styles.timerSection}>
           <SectionLabel text="Timer" color={accentColor} />
           <View style={styles.timerRow}>
-            <View style={[styles.timerDisplay, { borderColor: timer.running ? accentColor : Colors.border }]}>
-              <Text style={[styles.timerText, { color: timer.finished ? Colors.success : timer.running ? accentColor : Colors.textPrimary }]}>
+            <View style={[styles.timerDisplay, { borderColor: timer.running ? accentColor : colors.border }]}>
+              <Text style={[styles.timerText, {
+                color: timer.finished ? colors.success : timer.running ? accentColor : colors.textPrimary,
+              }]}>
                 {timer.finished ? '✓ Czas!' : timer.formatted}
               </Text>
             </View>
@@ -88,7 +96,9 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                 activeOpacity={0.75}
                 style={[styles.timerBtn, { backgroundColor: accentColor }]}
               >
-                <Text style={styles.timerBtnText}>{timer.running ? 'Pauza' : timer.finished ? 'Od nowa' : 'Start'}</Text>
+                <Text style={styles.timerBtnText}>
+                  {timer.running ? 'Pauza' : timer.finished ? 'Od nowa' : 'Start'}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleReset}
@@ -133,6 +143,25 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
 
         <Divider />
 
+        {/* Notes */}
+        <View style={styles.section}>
+          <SectionLabel text="Moje notatki" color={accentColor} />
+          <TextInput
+            style={[
+              styles.noteInput,
+              { borderColor: note.length > 0 ? accentColor + '60' : colors.border },
+            ]}
+            multiline
+            placeholder="Zapisz swoje przemyślenia po ćwiczeniu…"
+            placeholderTextColor={colors.textMuted}
+            value={note}
+            onChangeText={saveNote}
+            textAlignVertical="top"
+          />
+        </View>
+
+        <Divider />
+
         {/* Done button */}
         <View style={styles.section}>
           <CheckButton done={done} onPress={handleDone} />
@@ -142,95 +171,105 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg },
-  navbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  backBtn: { padding: 4 },
-  backText: { fontSize: FontSize.md, color: Colors.critical },
-  navTitle: { fontSize: FontSize.sm, color: Colors.textMuted, fontWeight: '600' },
+function makeStyles(colors: ColorScheme) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.bg },
+    navbar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    backBtn: { padding: 4 },
+    backText: { fontSize: FontSize.md },
+    navTitle: { fontSize: FontSize.sm, color: colors.textMuted, fontWeight: '600' },
 
-  scroll: { padding: Spacing.lg, gap: Spacing.lg },
+    scroll: { padding: Spacing.lg, gap: Spacing.lg },
 
-  hero: {
-    borderRadius: Radius.xl,
-    padding: Spacing.xl,
-    alignItems: 'center',
-    borderWidth: 1,
-    gap: Spacing.sm,
-  },
-  heroEmoji: { fontSize: 48 },
-  heroName: { fontSize: FontSize.xl, fontWeight: '600', color: Colors.textPrimary, textAlign: 'center' },
-  heroBadges: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' },
-  timePillLarge: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.bgElevated,
-    borderWidth: 1,
-    borderColor: Colors.borderStrong,
-  },
-  timePillText: { fontSize: FontSize.xs, color: Colors.textMuted },
+    hero: {
+      borderRadius: Radius.xl,
+      padding: Spacing.xl,
+      alignItems: 'center',
+      borderWidth: 1,
+      gap: Spacing.sm,
+    },
+    heroEmoji: { fontSize: 48 },
+    heroName: { fontSize: FontSize.xl, fontWeight: '600', color: colors.textPrimary, textAlign: 'center' },
+    heroBadges: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' },
+    timePillLarge: {
+      paddingHorizontal: 12,
+      paddingVertical: 5,
+      borderRadius: Radius.full,
+      backgroundColor: colors.bgElevated,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    timePillText: { fontSize: FontSize.xs, color: colors.textMuted },
 
-  description: {
-    fontSize: FontSize.md,
-    color: Colors.textSecondary,
-    lineHeight: 24,
-  },
+    description: { fontSize: FontSize.md, color: colors.textSecondary, lineHeight: 24 },
 
-  timerSection: { gap: Spacing.md },
-  timerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  timerDisplay: {
-    flex: 1,
-    paddingVertical: Spacing.lg,
-    borderRadius: Radius.lg,
-    borderWidth: 2,
-    alignItems: 'center',
-    backgroundColor: Colors.bgCard,
-  },
-  timerText: { fontSize: 40, fontWeight: '200', letterSpacing: 2 },
-  timerBtns: { gap: 8 },
-  timerBtn: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.md,
-    alignItems: 'center',
-    minWidth: 80,
-  },
-  timerBtnText: { color: Colors.white, fontWeight: '600', fontSize: FontSize.sm },
-  timerBtnSecondary: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.borderStrong,
-  },
-  timerBtnSecondaryText: { color: Colors.textMuted, fontSize: FontSize.sm },
-  timerOptions: { flexDirection: 'row', gap: 8 },
-  timerOption: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
-    borderRadius: Radius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  timerOptionText: { fontSize: FontSize.xs, color: Colors.textMuted },
+    timerSection: { gap: Spacing.md },
+    timerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+    timerDisplay: {
+      flex: 1,
+      paddingVertical: Spacing.lg,
+      borderRadius: Radius.lg,
+      borderWidth: 2,
+      alignItems: 'center',
+      backgroundColor: colors.bgCard,
+    },
+    timerText: { fontSize: 40, fontWeight: '200', letterSpacing: 2 },
+    timerBtns: { gap: 8 },
+    timerBtn: {
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.sm,
+      borderRadius: Radius.md,
+      alignItems: 'center',
+      minWidth: 80,
+    },
+    timerBtnText: { color: colors.white, fontWeight: '600', fontSize: FontSize.sm },
+    timerBtnSecondary: {
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.sm,
+      borderRadius: Radius.md,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    timerBtnSecondaryText: { color: colors.textMuted, fontSize: FontSize.sm },
+    timerOptions: { flexDirection: 'row', gap: 8 },
+    timerOption: {
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 6,
+      borderRadius: Radius.full,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    timerOptionText: { fontSize: FontSize.xs, color: colors.textMuted },
 
-  section: { gap: Spacing.sm },
-  promptBox: {
-    backgroundColor: Colors.bgCard,
-    borderRadius: Radius.md,
-    padding: Spacing.md,
-    borderLeftWidth: 3,
-  },
-  promptText: { fontSize: FontSize.sm, color: Colors.textPrimary, lineHeight: 24 },
-  tipText: { fontSize: FontSize.sm, color: Colors.textMuted, fontStyle: 'italic', lineHeight: 22 },
-});
+    section: { gap: Spacing.sm },
+    promptBox: {
+      backgroundColor: colors.bgCard,
+      borderRadius: Radius.md,
+      padding: Spacing.md,
+      borderLeftWidth: 3,
+    },
+    promptText: { fontSize: FontSize.sm, color: colors.textPrimary, lineHeight: 24 },
+    tipText: { fontSize: FontSize.sm, color: colors.textMuted, fontStyle: 'italic', lineHeight: 22 },
+
+    noteInput: {
+      backgroundColor: colors.bgInput,
+      borderRadius: Radius.md,
+      borderWidth: 1,
+      padding: Spacing.md,
+      fontSize: FontSize.sm,
+      color: colors.textPrimary,
+      minHeight: 120,
+      lineHeight: 22,
+    },
+  });
+}
+

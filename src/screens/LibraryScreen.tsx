@@ -5,9 +5,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors, FontSize, Spacing, Radius, CategoryColors } from '../theme';
+import { FontSize, Spacing, Radius, type ColorScheme } from '../theme';
 import { EXERCISES, type Category } from '../data/exercises';
 import { ExerciseCard } from '../components/ExerciseCard';
+import { useTheme } from '../theme/ThemeContext';
 
 const FILTERS: { key: Category | 'all'; label: string }[] = [
   { key: 'all',          label: 'Wszystkie' },
@@ -23,10 +24,13 @@ interface Props {
 export function LibraryScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<Category | 'all'>('all');
+  const { colors, categoryColors } = useTheme();
 
   const filtered = filter === 'all'
     ? EXERCISES
     : EXERCISES.filter(e => e.category === filter);
+
+  const styles = makeStyles(colors);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -40,10 +44,11 @@ export function LibraryScreen({ navigation }: Props) {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filters}
+        style={styles.filtersScroll}
       >
         {FILTERS.map(f => {
           const active = filter === f.key;
-          const color = f.key !== 'all' ? CategoryColors[f.key] : Colors.textPrimary;
+          const color = f.key !== 'all' ? categoryColors[f.key] : colors.textPrimary;
           return (
             <TouchableOpacity
               key={f.key}
@@ -83,27 +88,32 @@ export function LibraryScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg },
-  header: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  subtitle: { fontSize: FontSize.xs, color: Colors.textMuted, letterSpacing: 3, marginBottom: 2 },
-  title: { fontSize: FontSize.xxl, fontWeight: '300', color: Colors.textPrimary },
+function makeStyles(colors: ColorScheme) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.bg },
+    header: {
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    subtitle: { fontSize: FontSize.xs, color: colors.textMuted, letterSpacing: 3, marginBottom: 2 },
+    title: { fontSize: FontSize.xxl, fontWeight: '300', color: colors.textPrimary },
 
-  filters: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, gap: 8 },
-  filterChip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 7,
-    borderRadius: Radius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  filterText: { fontSize: FontSize.sm, color: Colors.textMuted, fontWeight: '500' },
+    filtersScroll: { flexShrink: 0, flexGrow: 0, height: 56 },
+    filters: { paddingHorizontal: Spacing.lg, gap: 8, alignItems: 'center', flexGrow: 1 },
+    filterChip: {
+      paddingHorizontal: Spacing.md,
+      height: 36,
+      borderRadius: Radius.full,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    filterText: { fontSize: FontSize.sm, color: colors.textMuted, fontWeight: '500' },
 
-  scroll: { padding: Spacing.lg },
-  count: { fontSize: FontSize.xs, color: Colors.textMuted, marginBottom: Spacing.md, letterSpacing: 1 },
-});
+    scroll: { padding: Spacing.lg },
+    count: { fontSize: FontSize.xs, color: colors.textMuted, marginBottom: Spacing.md, letterSpacing: 1 },
+  });
+}

@@ -1,16 +1,19 @@
 // src/navigation/index.tsx
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { StyleSheet } from 'react-native';
+import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors, FontSize } from '../theme';
+import { FontSize } from '../theme';
 import { TodayScreen } from '../screens/TodayScreen';
 import { PlanScreen } from '../screens/PlanScreen';
 import { LibraryScreen } from '../screens/LibraryScreen';
+import { StatsScreen } from '../screens/StatsScreen';
 import { ExerciseDetailScreen } from '../screens/ExerciseDetailScreen';
+import { useTheme } from '../theme/ThemeContext';
 
 export type RootStackParamList = {
   Tabs: undefined;
@@ -21,52 +24,69 @@ export type TabParamList = {
   Today: undefined;
   Plan: undefined;
   Library: undefined;
+  Stats: undefined;
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createStackNavigator<RootStackParamList>();
 
 function TabNavigator() {
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: Colors.critical,
-        tabBarInactiveTintColor: Colors.textMuted,
+        tabBarStyle: {
+          backgroundColor: colors.bgCard,
+          borderTopColor: colors.border,
+          borderTopWidth: 1,
+          paddingTop: 4,
+          paddingBottom: insets.bottom,
+          height: 60 + insets.bottom,
+        },
+        tabBarItemStyle: {
+          height: 56,
+        },
+        tabBarActiveTintColor: colors.critical,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarLabelStyle: styles.tabLabel,
         tabBarIcon: ({ color, focused }) => {
           const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
             Today:   focused ? 'today' : 'today-outline',
             Plan:    focused ? 'calendar' : 'calendar-outline',
             Library: focused ? 'library' : 'library-outline',
+            Stats:   focused ? 'bar-chart' : 'bar-chart-outline',
           };
           return <Ionicons name={icons[route.name]} size={22} color={color} />;
         },
       })}
     >
-      <Tab.Screen name="Today" component={TodayScreen} options={{ tabBarLabel: 'Dziś' }} />
-      <Tab.Screen name="Plan" component={PlanScreen} options={{ tabBarLabel: 'Plan' }} />
+      <Tab.Screen name="Today"   component={TodayScreen}   options={{ tabBarLabel: 'Dziś' }} />
+      <Tab.Screen name="Plan"    component={PlanScreen}    options={{ tabBarLabel: 'Plan' }} />
       <Tab.Screen name="Library" component={LibraryScreen} options={{ tabBarLabel: 'Biblioteka' }} />
+      <Tab.Screen name="Stats"   component={StatsScreen}   options={{ tabBarLabel: 'Statystyki' }} />
     </Tab.Navigator>
   );
 }
 
 export function AppNavigator() {
+  const { isDark, colors } = useTheme();
+  const baseTheme = isDark ? DarkTheme : DefaultTheme;
+  const navTheme = {
+    ...baseTheme,
+    colors: {
+      ...baseTheme.colors,
+      primary: colors.critical,
+      background: colors.bg,
+      card: colors.bgCard,
+      text: colors.textPrimary,
+      border: colors.border,
+    },
+  };
+
   return (
-    <NavigationContainer
-      theme={{
-        dark: true,
-        colors: {
-          primary: Colors.critical,
-          background: Colors.bg,
-          card: Colors.bgCard,
-          text: Colors.textPrimary,
-          border: Colors.border,
-          notification: Colors.critical,
-        },
-      }}
-    >
+    <NavigationContainer theme={navTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Tabs" component={TabNavigator} />
         <Stack.Screen
@@ -80,16 +100,10 @@ export function AppNavigator() {
 }
 
 const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: Colors.bgCard,
-    borderTopColor: Colors.border,
-    borderTopWidth: 1,
-    paddingTop: 4,
-    height: 60,
-  },
   tabLabel: {
     fontSize: FontSize.xs,
     letterSpacing: 0.5,
     marginBottom: 4,
   },
 });
+

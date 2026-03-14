@@ -1,25 +1,37 @@
 // src/components/ui.tsx
-import React from 'react';
+import React from "react";
 import {
-  View, Text, TouchableOpacity, StyleSheet,
-  ViewStyle, TextStyle,
-} from 'react-native';
-import { Colors, CategoryColors, Spacing, Radius, FontSize } from '../theme';
-import type { Category } from '../data/exercises';
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ViewStyle,
+} from "react-native";
+import Svg, { Circle } from "react-native-svg";
+import { Spacing, Radius, FontSize } from "../theme";
+import { useTheme } from "../theme/ThemeContext";
+import type { Category } from "../data/exercises";
 
 // ─── CategoryBadge ────────────────────────────────────────────────────────
 
 interface CategoryBadgeProps {
-  category: Category;
+  category: Category | string;
   label: string;
   small?: boolean;
 }
 
 export function CategoryBadge({ category, label, small }: CategoryBadgeProps) {
-  const color = CategoryColors[category];
+  const { categoryColors } = useTheme();
+  const color = categoryColors[category] ?? "#888";
   return (
-    <View style={[styles.badge, { backgroundColor: color + '22', borderColor: color + '55' }, small && styles.badgeSmall]}>
-      <Text style={[styles.badgeText, { color }, small && styles.badgeTextSmall]}>
+    <View
+      style={[
+        s.badge,
+        { backgroundColor: color + "22", borderColor: color + "55" },
+        small && s.badgeSmall,
+      ]}
+    >
+      <Text style={[s.badgeText, { color }, small && s.badgeTextSmall]}>
         {label.toUpperCase()}
       </Text>
     </View>
@@ -28,14 +40,21 @@ export function CategoryBadge({ category, label, small }: CategoryBadgeProps) {
 
 // ─── TimePill ─────────────────────────────────────────────────────────────
 
-interface TimePillProps {
-  text: string;
-}
-
-export function TimePill({ text }: TimePillProps) {
+export function TimePill({ text }: { text: string }) {
+  const { colors } = useTheme();
   return (
-    <View style={styles.timePill}>
-      <Text style={styles.timePillText}>⏱ {text}</Text>
+    <View
+      style={[
+        s.timePill,
+        {
+          backgroundColor: colors.bgElevated,
+          borderColor: colors.borderStrong,
+        },
+      ]}
+    >
+      <Text style={[s.timePillText, { color: colors.textMuted }]}>
+        ⏱ {text}
+      </Text>
     </View>
   );
 }
@@ -49,18 +68,27 @@ interface CheckButtonProps {
 }
 
 export function CheckButton({ done, onPress, style }: CheckButtonProps) {
+  const { colors } = useTheme();
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
       style={[
-        styles.checkBtn,
-        done && styles.checkBtnDone,
+        s.checkBtn,
+        {
+          backgroundColor: done ? colors.success + "22" : "transparent",
+          borderColor: done ? colors.success : colors.borderStrong,
+        },
         style,
       ]}
     >
-      <Text style={[styles.checkBtnText, done && styles.checkBtnTextDone]}>
-        {done ? '✓  Ukończono' : 'Oznacz jako ukończone'}
+      <Text
+        style={[
+          s.checkBtnText,
+          { color: done ? colors.success : colors.textMuted },
+        ]}
+      >
+        {done ? "✓  Ukończono" : "Oznacz jako ukończone"}
       </Text>
     </TouchableOpacity>
   );
@@ -68,9 +96,16 @@ export function CheckButton({ done, onPress, style }: CheckButtonProps) {
 
 // ─── SectionLabel ────────────────────────────────────────────────────────
 
-export function SectionLabel({ text, color }: { text: string; color?: string }) {
+export function SectionLabel({
+  text,
+  color,
+}: {
+  text: string;
+  color?: string;
+}) {
+  const { colors } = useTheme();
   return (
-    <Text style={[styles.sectionLabel, color ? { color } : {}]}>
+    <Text style={[s.sectionLabel, { color: color ?? colors.textMuted }]}>
       {text}
     </Text>
   );
@@ -78,15 +113,22 @@ export function SectionLabel({ text, color }: { text: string; color?: string }) 
 
 // ─── Divider ─────────────────────────────────────────────────────────────
 
-export function Divider({ color, style }: { color?: string; style?: ViewStyle }) {
+export function Divider({
+  color,
+  style,
+}: {
+  color?: string;
+  style?: ViewStyle;
+}) {
+  const { colors } = useTheme();
   return (
-    <View style={[styles.divider, color ? { backgroundColor: color } : {}, style]} />
+    <View
+      style={[s.divider, { backgroundColor: color ?? colors.border }, style]}
+    />
   );
 }
 
 // ─── ProgressRing ────────────────────────────────────────────────────────
-
-import Svg, { Circle } from 'react-native-svg';
 
 interface ProgressRingProps {
   progress: number; // 0–1
@@ -94,101 +136,96 @@ interface ProgressRingProps {
   color?: string;
 }
 
-export function ProgressRing({ progress, size = 56, color = Colors.critical }: ProgressRingProps) {
+export function ProgressRing({
+  progress,
+  size = 56,
+  color,
+}: ProgressRingProps) {
+  const { colors } = useTheme();
+  const accentColor = color ?? colors.critical;
   const r = (size - 8) / 2;
   const circ = 2 * Math.PI * r;
   const dash = progress * circ;
 
   return (
     <View style={{ width: size, height: size }}>
-      <Svg width={size} height={size} style={{ transform: [{ rotate: '-90deg' }] }}>
-        <Circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={Colors.bgElevated} strokeWidth={4} />
+      <Svg
+        width={size}
+        height={size}
+        style={{ transform: [{ rotate: "-90deg" }] }}
+      >
         <Circle
-          cx={size / 2} cy={size / 2} r={r}
-          fill="none" stroke={color} strokeWidth={4}
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={colors.bgElevated}
+          strokeWidth={4}
+        />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={accentColor}
+          strokeWidth={4}
           strokeDasharray={`${dash} ${circ}`}
           strokeLinecap="round"
         />
       </Svg>
-      <View style={[StyleSheet.absoluteFillObject, styles.ringInner]}>
-        <Text style={[styles.ringText, { color }]}>{Math.round(progress * 100)}%</Text>
+      <View style={[StyleSheet.absoluteFillObject, s.ringInner]}>
+        <Text style={[s.ringText, { color: accentColor }]}>
+          {Math.round(progress * 100)}%
+        </Text>
       </View>
     </View>
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────
+// ─── Static styles (no colors) ───────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: Radius.full,
     borderWidth: 1,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
-  badgeSmall: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-  },
-  badgeText: {
-    fontSize: FontSize.xs,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  badgeTextSmall: {
-    fontSize: 9,
-  },
+  badgeSmall: { paddingHorizontal: 7, paddingVertical: 2 },
+  badgeText: { fontSize: FontSize.xs, fontWeight: "700", letterSpacing: 1 },
+  badgeTextSmall: { fontSize: 9 },
+
   timePill: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: Radius.full,
-    backgroundColor: Colors.bgElevated,
     borderWidth: 1,
-    borderColor: Colors.borderStrong,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
-  timePillText: {
-    fontSize: FontSize.xs,
-    color: Colors.textMuted,
-    letterSpacing: 0.5,
-  },
+  timePillText: { fontSize: FontSize.xs, letterSpacing: 0.5 },
+
   checkBtn: {
     padding: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.borderStrong,
-    alignItems: 'center',
-  },
-  checkBtnDone: {
-    borderColor: Colors.success + '80',
-    backgroundColor: Colors.success + '15',
+    alignItems: "center",
   },
   checkBtnText: {
-    color: Colors.textMuted,
     fontSize: FontSize.sm,
+    fontWeight: "600",
     letterSpacing: 0.5,
   },
-  checkBtnTextDone: {
-    color: Colors.success,
-  },
+
   sectionLabel: {
     fontSize: FontSize.xs,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 2,
-    color: Colors.textMuted,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.border,
-  },
-  ringInner: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ringText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
+
+  divider: { height: 1 },
+
+  ringInner: { alignItems: "center", justifyContent: "center" },
+  ringText: { fontSize: 11, fontWeight: "700" },
 });
