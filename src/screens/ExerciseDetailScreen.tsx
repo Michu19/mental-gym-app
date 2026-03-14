@@ -24,13 +24,13 @@ import {
 import { useTheme } from "../theme/ThemeContext";
 
 interface Props {
-  route: { params: { exerciseId: string; dateStr?: string } };
+  route: { params: { exerciseId: string; dateStr?: string; showToggle?: boolean } };
   navigation: any;
 }
 
 export function ExerciseDetailScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { exerciseId, dateStr } = route.params;
+  const { exerciseId, dateStr, showToggle } = route.params;
   const ex = EXERCISES_BY_ID[exerciseId];
   const { colors, categoryColors } = useTheme();
   const accentColor = categoryColors[ex.category];
@@ -336,9 +336,11 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
         <Divider />
 
         {/* Done button */}
-        <View style={styles.section}>
-          <CheckButton done={done} onPress={handleDone} />
-        </View>
+        {showToggle && (
+          <View style={styles.section}>
+            <CheckButton done={done} onPress={handleDone} />
+          </View>
+        )}
       </ScrollView>
     </View>
   );

@@ -185,6 +185,7 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
               navigation?.navigate("ExerciseDetail", {
                 exerciseId: ex.id,
                 dateStr: selectedDateStr,
+                showToggle: true,
               })
             }
           />

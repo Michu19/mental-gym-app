@@ -8,6 +8,7 @@ import {
   TextInput,
 } from "react-native";
 import { FontSize, Radius, Spacing, type ColorScheme } from "../theme";
+import { Ionicons } from "@expo/vector-icons";
 import {
   CategoryBadge,
   CheckButton,
@@ -73,7 +74,7 @@ export function ExerciseCard({
     >
       {/* Header */}
       <TouchableOpacity
-        onPress={() => setExpanded((e) => !e)}
+        onPress={() => (onPress ? onPress() : setExpanded((e) => !e))}
         activeOpacity={0.8}
         style={styles.header}
       >
@@ -104,11 +105,17 @@ export function ExerciseCard({
             />
           </View>
         </View>
-        <Text style={[styles.chevron, expanded && styles.chevronUp]}>›</Text>
+        {onPress ? (
+          <View style={styles.navArrowWrap}>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          </View>
+        ) : (
+          <Text style={[styles.chevron, expanded && styles.chevronUp]}>›</Text>
+        )}
       </TouchableOpacity>
 
-      {/* Expanded body */}
-      {expanded && (
+      {/* Expanded body — only when no onPress (card is self-contained) */}
+      {!onPress && expanded && (
         <View style={styles.body}>
           <Divider style={styles.bodyDivider} />
           <Text style={styles.description}>{ex.description}</Text>
@@ -186,14 +193,14 @@ export function ExerciseCard({
       )}
 
       {/* Collapsed done indicator */}
-      {!expanded && done && (
+      {(!onPress || !expanded) && done && (
         <View style={styles.doneStrip}>
           <Text style={styles.doneStripText}>✓ Ukończone</Text>
         </View>
       )}
 
       {/* Tap to complete when collapsed */}
-      {!expanded && !done && (
+      {!onPress && !expanded && !done && (
         <TouchableOpacity
           onPress={onToggle}
           activeOpacity={0.7}
@@ -259,6 +266,11 @@ function makeStyles(colors: ColorScheme) {
       transform: [{ rotate: "90deg" }],
     },
     chevronUp: { transform: [{ rotate: "-90deg" }] },
+    navArrowWrap: {
+      alignSelf: "stretch",
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
     body: { paddingHorizontal: Spacing.md, paddingBottom: Spacing.md },
     bodyDivider: { marginBottom: Spacing.md },
