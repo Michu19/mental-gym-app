@@ -31,14 +31,14 @@ function getWeekDateStr(dayIdx: number): string {
 
 export function TodayScreen({ navigation }: { navigation?: any }) {
   const insets = useSafeAreaInsets();
-  const { toggleExercise, loading, reload, completedByDate } =
-    useProgress();
+  const { toggleExercise, loading, reload, completedByDate } = useProgress();
   const { colors } = useTheme();
   const { activeDays } = usePlan();
   const [selectedDay, setSelectedDay] = React.useState(todayIdx);
 
   const selectedDateStr = getWeekDateStr(selectedDay);
-  const selectedCompletedSet = completedByDate[selectedDateStr] ?? new Set<string>();
+  const selectedCompletedSet =
+    completedByDate[selectedDateStr] ?? new Set<string>();
 
   const dayPlan = activeDays[selectedDay];
   const exercises = dayPlan.exerciseIds.map((id) => EXERCISES_BY_ID[id]);
@@ -80,9 +80,12 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
           const planDay = activeDays[i];
           const dateStr = getWeekDateStr(i);
           const dayCompletedSet = completedByDate[dateStr] ?? new Set<string>();
-          const dayDoneCount = planDay.exerciseIds.filter((id) => dayCompletedSet.has(id)).length;
+          const dayDoneCount = planDay.exerciseIds.filter((id) =>
+            dayCompletedSet.has(id),
+          ).length;
           const isDayDone =
-            planDay.exerciseIds.length > 0 && dayDoneCount === planDay.exerciseIds.length;
+            planDay.exerciseIds.length > 0 &&
+            dayDoneCount === planDay.exerciseIds.length;
           const isDayPartial = dayDoneCount > 0 && !isDayDone;
           return (
             <TouchableOpacity
@@ -98,22 +101,31 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
                 isDayPartial && {
                   borderColor: colors.success + "90",
                 },
-                isSelected && !isDayDone && {
-                  borderColor: isDayPartial ? colors.success : colors.critical,
-                  backgroundColor: colors.bgElevated,
-                },
-                isSelected && isDayDone && {
-                  backgroundColor: colors.success + "30",
-                },
-                isToday && !isSelected && !isDayDone && !isDayPartial && {
-                  borderColor: colors.critical + "50",
-                },
+                isSelected &&
+                  !isDayDone && {
+                    borderColor: isDayPartial
+                      ? colors.success
+                      : colors.critical,
+                    backgroundColor: colors.bgElevated,
+                  },
+                isSelected &&
+                  isDayDone && {
+                    backgroundColor: colors.success + "30",
+                  },
+                isToday &&
+                  !isSelected &&
+                  !isDayDone &&
+                  !isDayPartial && {
+                    borderColor: colors.critical + "50",
+                  },
               ]}
             >
               <Text
                 style={[
                   styles.dayText,
-                  isSelected && !isDayDone && !isDayPartial && { color: colors.textPrimary },
+                  isSelected &&
+                    !isDayDone &&
+                    !isDayPartial && { color: colors.textPrimary },
                   isDayPartial && { color: colors.success },
                   isDayDone && { color: colors.success, fontWeight: "700" },
                 ]}

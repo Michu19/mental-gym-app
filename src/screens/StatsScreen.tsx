@@ -119,15 +119,31 @@ export function StatsScreen() {
               activeOpacity={0.7}
               style={styles.weekNavBtn}
             >
-              <Text style={[styles.weekNavArrow, { color: colors.textSecondary }]}>‹</Text>
+              <Text
+                style={[styles.weekNavArrow, { color: colors.textSecondary }]}
+              >
+                ‹
+              </Text>
             </TouchableOpacity>
-            <Text style={styles.weekNavLabel}>{formatWeekLabel(weekOffset)}</Text>
+            <Text style={styles.weekNavLabel}>
+              {formatWeekLabel(weekOffset)}
+            </Text>
             <TouchableOpacity
               onPress={() => setWeekOffset((o) => Math.min(0, o + 1))}
               activeOpacity={0.7}
               style={styles.weekNavBtn}
             >
-              <Text style={[styles.weekNavArrow, { color: weekOffset >= 0 ? colors.textMuted : colors.textSecondary }]}>›</Text>
+              <Text
+                style={[
+                  styles.weekNavArrow,
+                  {
+                    color:
+                      weekOffset >= 0 ? colors.textMuted : colors.textSecondary,
+                  },
+                ]}
+              >
+                ›
+              </Text>
             </TouchableOpacity>
           </View>
           <View style={styles.heatmapRow}>

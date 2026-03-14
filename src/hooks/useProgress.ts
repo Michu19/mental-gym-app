@@ -1,6 +1,7 @@
 // src/hooks/useProgress.ts
 import { useState, useEffect, useCallback, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Paths, File as FSFile, Directory as FSDirectory } from "expo-file-system";
 
 // Key format: progress:YYYY-MM-DD:exerciseId
 export const KEY_PREFIX = "progress:";
@@ -32,7 +33,9 @@ function computeStreakFromKeys(allKeys: readonly string[]): number {
 
 export function useProgress() {
   const [completedToday, setCompletedToday] = useState<Set<string>>(new Set());
-  const [completedByDate, setCompletedByDate] = useState<Record<string, Set<string>>>({});
+  const [completedByDate, setCompletedByDate] = useState<
+    Record<string, Set<string>>
+  >({});
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -56,8 +59,12 @@ export function useProgress() {
         const d = new Date(nowDate);
         d.setDate(nowDate.getDate() - todayDayOffset + i);
         const dateStr = d.toISOString().split("T")[0];
-        const dayKeys = allKeys.filter((k) => k.startsWith(`${KEY_PREFIX}${dateStr}:`));
-        weekMap[dateStr] = new Set(dayKeys.map((k) => k.split(":")[2]).filter(Boolean));
+        const dayKeys = allKeys.filter((k) =>
+          k.startsWith(`${KEY_PREFIX}${dateStr}:`),
+        );
+        weekMap[dateStr] = new Set(
+          dayKeys.map((k) => k.split(":")[2]).filter(Boolean),
+        );
       }
       setCompletedByDate(weekMap);
 
@@ -168,6 +175,7 @@ export interface NoteEntry {
   id: string; // timestamp string (used as unique key)
   text: string;
   createdAt: string; // ISO date string
+  imageUris?: string[]; // local file:// URIs of attached photos
 }
 
 const NOTES_KEY = (exerciseId: string) => `notes:${exerciseId}`;
@@ -200,6 +208,7 @@ export function useNoteHistory(exerciseId: string) {
         id: Date.now().toString(),
         text: text.trim(),
         createdAt: new Date().toISOString(),
+        imageUris: [],
       };
       await persist([entry, ...notes]);
     },
@@ -208,12 +217,51 @@ export function useNoteHistory(exerciseId: string) {
 
   const deleteNote = useCallback(
     async (id: string) => {
+      // also clean up stored image files
+      const entry = notes.find((n) => n.id === id);
+      if (entry?.imageUris) {
+        for (const uri of entry.imageUris) {
+          try { const f = new FSFile(uri); if (f.exists) f.delete(); } catch {}
+        }
+      }
       await persist(notes.filter((n) => n.id !== id));
     },
     [notes, persist],
   );
 
-  return { notes, addNote, deleteNote };
+  const addImage = useCallback(
+    async (noteId: string, sourceUri: string) => {
+      const dir = new FSDirectory(Paths.document, "notes_images", exerciseId);
+      dir.create({ intermediates: true, idempotent: true });
+      const filename = `${noteId}_${Date.now()}.jpg`;
+      const destFile = new FSFile(dir, filename);
+      const sourceFile = new FSFile(sourceUri);
+      sourceFile.copy(destFile);
+      const destUri = destFile.uri;
+      const next = notes.map((n) =>
+        n.id === noteId
+          ? { ...n, imageUris: [...(n.imageUris ?? []), destUri] }
+          : n,
+      );
+      await persist(next);
+    },
+    [notes, persist, exerciseId],
+  );
+
+  const deleteImage = useCallback(
+    async (noteId: string, uri: string) => {
+      try { const f = new FSFile(uri); if (f.exists) f.delete(); } catch {}
+      const next = notes.map((n) =>
+        n.id === noteId
+          ? { ...n, imageUris: (n.imageUris ?? []).filter((u) => u !== uri) }
+          : n,
+      );
+      await persist(next);
+    },
+    [notes, persist],
+  );
+
+  return { notes, addNote, deleteNote, addImage, deleteImage };
 }
 
 // ─── useTimer ────────────────────────────────────────────────────────────

@@ -25,11 +25,11 @@ export default function App() {
     <ThemeProvider>
       <PlanProvider>
         <ProgressProvider>
-        <GestureHandlerRootView style={styles.root}>
-          <SafeAreaProvider>
-            <AppContent />
-          </SafeAreaProvider>
-        </GestureHandlerRootView>
+          <GestureHandlerRootView style={styles.root}>
+            <SafeAreaProvider>
+              <AppContent />
+            </SafeAreaProvider>
+          </GestureHandlerRootView>
         </ProgressProvider>
       </PlanProvider>
     </ThemeProvider>

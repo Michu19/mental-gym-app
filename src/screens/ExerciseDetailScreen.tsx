@@ -7,7 +7,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
+  Image,
+  Modal,
+  Alert,
+  Platform,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 
@@ -24,7 +29,9 @@ import {
 import { useTheme } from "../theme/ThemeContext";
 
 interface Props {
-  route: { params: { exerciseId: string; dateStr?: string; showToggle?: boolean } };
+  route: {
+    params: { exerciseId: string; dateStr?: string; showToggle?: boolean };
+  };
   navigation: any;
 }
 
@@ -37,9 +44,44 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
   const { completedByDate, toggleExercise } = useProgressContext();
   const todayStr = new Date().toISOString().split("T")[0];
   const effectiveDateStr = dateStr ?? todayStr;
-  const done = (completedByDate[effectiveDateStr] ?? new Set<string>()).has(exerciseId);
+  const done = (completedByDate[effectiveDateStr] ?? new Set<string>()).has(
+    exerciseId,
+  );
   const [draftNote, setDraftNote] = useState("");
-  const { notes, addNote, deleteNote } = useNoteHistory(exerciseId);
+  const { notes, addNote, deleteNote, addImage, deleteImage } = useNoteHistory(exerciseId);
+  const [lightboxUri, setLightboxUri] = useState<string | null>(null);
+
+  const requestAndPickFromCamera = async (noteId: string) => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Brak uprawnień", "Zezwól na dostęp do aparatu w ustawieniach.");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      await addImage(noteId, result.assets[0].uri);
+    }
+  };
+
+  const requestAndPickFromGallery = async (noteId: string) => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Brak uprawnień", "Zezwól na dostęp do galerii w ustawieniach.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: false,
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      await addImage(noteId, result.assets[0].uri);
+    }
+  };
 
   const timer = useTimer(ex.timeMin * 60);
 
@@ -326,6 +368,45 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                       </TouchableOpacity>
                     </View>
                     <Text style={styles.noteEntryText}>{entry.text}</Text>
+
+                    {/* Photo thumbnails */}
+                    {(entry.imageUris ?? []).length > 0 && (
+                      <View style={styles.photoGrid}>
+                        {(entry.imageUris ?? []).map((uri) => (
+                          <TouchableOpacity
+                            key={uri}
+                            onPress={() => setLightboxUri(uri)}
+                            onLongPress={() =>
+                              Alert.alert("Usuń zdjęcie", "Czy usunąć to zdjęcie?", [
+                                { text: "Anuluj", style: "cancel" },
+                                { text: "Usuń", style: "destructive", onPress: () => deleteImage(entry.id, uri) },
+                              ])
+                            }
+                            activeOpacity={0.8}
+                          >
+                            <Image source={{ uri }} style={styles.photoThumb} />
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+
+                    {/* Photo add buttons */}
+                    <View style={styles.photoActions}>
+                      <TouchableOpacity
+                        onPress={() => requestAndPickFromCamera(entry.id)}
+                        activeOpacity={0.7}
+                        style={[styles.photoBtn, { borderColor: accentColor + "66" }]}
+                      >
+                        <Text style={[styles.photoBtnText, { color: accentColor }]}>📷 Aparat</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => requestAndPickFromGallery(entry.id)}
+                        activeOpacity={0.7}
+                        style={[styles.photoBtn, { borderColor: colors.borderStrong }]}
+                      >
+                        <Text style={[styles.photoBtnText, { color: colors.textMuted }]}>🖼 Galeria</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 );
               })}
@@ -342,6 +423,32 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
           </View>
         )}
       </ScrollView>
+
+      {/* Lightbox */}
+      <Modal
+        visible={!!lightboxUri}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setLightboxUri(null)}
+        statusBarTranslucent
+      >
+        <View style={styles.lightboxOverlay}>
+          <TouchableOpacity
+            style={styles.lightboxClose}
+            onPress={() => setLightboxUri(null)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.lightboxCloseText}>✕</Text>
+          </TouchableOpacity>
+          {lightboxUri && (
+            <Image
+              source={{ uri: lightboxUri }}
+              style={styles.lightboxImage}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -543,6 +650,63 @@ function makeStyles(colors: ColorScheme) {
       fontSize: FontSize.sm,
       color: colors.textPrimary,
       lineHeight: 22,
+    },
+
+    photoGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 6,
+      marginTop: 4,
+    },
+    photoThumb: {
+      width: 80,
+      height: 80,
+      borderRadius: Radius.sm,
+      backgroundColor: colors.bgElevated,
+    },
+    photoActions: {
+      flexDirection: "row",
+      gap: 8,
+      marginTop: 4,
+    },
+    photoBtn: {
+      flex: 1,
+      borderWidth: 1,
+      borderRadius: Radius.md,
+      paddingVertical: 6,
+      alignItems: "center",
+    },
+    photoBtnText: {
+      fontSize: FontSize.xs,
+      fontWeight: "600",
+    },
+
+    lightboxOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.92)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    lightboxClose: {
+      position: "absolute",
+      top: Platform.OS === "ios" ? 56 : 32,
+      right: 20,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: "rgba(255,255,255,0.15)",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 10,
+    },
+    lightboxCloseText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "700",
+    },
+    lightboxImage: {
+      width: "100%",
+      height: "80%",
     },
   });
 }

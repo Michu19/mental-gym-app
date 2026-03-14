@@ -107,7 +107,11 @@ export function ExerciseCard({
         </View>
         {onPress ? (
           <View style={styles.navArrowWrap}>
-            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            <Ionicons
+              name="chevron-forward"
+              size={18}
+              color={colors.textMuted}
+            />
           </View>
         ) : (
           <Text style={[styles.chevron, expanded && styles.chevronUp]}>›</Text>
