@@ -1,17 +1,30 @@
 // src/screens/PlanEditorScreen.tsx
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, Alert,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '../theme/ThemeContext';
-import { usePlan, DEFAULT_PLAN, type WeekPlanSet } from '../hooks/PlanContext';
-import { EXERCISES, EXERCISES_BY_ID } from '../data/exercises';
-import { FontSize, Spacing, Radius, type ColorScheme } from '../theme';
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "../theme/ThemeContext";
+import { usePlan, DEFAULT_PLAN, type WeekPlanSet } from "../hooks/PlanContext";
+import { EXERCISES, EXERCISES_BY_ID } from "../data/exercises";
+import { FontSize, Spacing, Radius, type ColorScheme } from "../theme";
 
-const DAY_SHORT = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'];
-const DAY_FULL  = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela'];
+const DAY_SHORT = ["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Nd"];
+const DAY_FULL = [
+  "Poniedziałek",
+  "Wtorek",
+  "Środa",
+  "Czwartek",
+  "Piątek",
+  "Sobota",
+  "Niedziela",
+];
 
 interface Props {
   route: { params?: { planId?: string } };
@@ -25,34 +38,41 @@ export function PlanEditorScreen({ route, navigation }: Props) {
   const styles = makeStyles(colors);
 
   const planId = route.params?.planId;
-  const existing = planId ? plans.find(p => p.id === planId) : undefined;
+  const existing = planId ? plans.find((p) => p.id === planId) : undefined;
 
-  const [name, setName] = useState(existing?.name ?? '');
+  const [name, setName] = useState(existing?.name ?? "");
   const [days, setDays] = useState<string[][]>(
-    existing?.days.map(d => [...d.exerciseIds])
-      ?? DEFAULT_PLAN.days.map(d => [...d.exerciseIds]),
+    existing?.days.map((d) => [...d.exerciseIds]) ??
+      DEFAULT_PLAN.days.map((d) => [...d.exerciseIds]),
   );
   const [selectedDay, setSelectedDay] = useState(0);
 
   const currentIds = days[selectedDay];
-  const available = EXERCISES.filter(e => !currentIds.includes(e.id));
+  const available = EXERCISES.filter((e) => !currentIds.includes(e.id));
 
   const addExercise = (id: string) => {
     if (currentIds.length >= 5) return;
-    setDays(prev => prev.map((d, i) => i === selectedDay ? [...d, id] : d));
+    setDays((prev) => prev.map((d, i) => (i === selectedDay ? [...d, id] : d)));
   };
 
   const removeExercise = (id: string) => {
-    setDays(prev => prev.map((d, i) => i === selectedDay ? d.filter(eid => eid !== id) : d));
+    setDays((prev) =>
+      prev.map((d, i) =>
+        i === selectedDay ? d.filter((eid) => eid !== id) : d,
+      ),
+    );
   };
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Brak nazwy', 'Podaj nazwę planu.');
+      Alert.alert("Brak nazwy", "Podaj nazwę planu.");
       return;
     }
-    if (days.some(d => d.length === 0)) {
-      Alert.alert('Pusty dzień', 'Każdy dzień musi mieć co najmniej jedno ćwiczenie.');
+    if (days.some((d) => d.length === 0)) {
+      Alert.alert(
+        "Pusty dzień",
+        "Każdy dzień musi mieć co najmniej jedno ćwiczenie.",
+      );
       return;
     }
     const plan: WeekPlanSet = {
@@ -73,12 +93,29 @@ export function PlanEditorScreen({ route, navigation }: Props) {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Navbar */}
       <View style={styles.navbar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7} style={styles.navSide}>
-          <Text style={[styles.navAction, { color: colors.critical }]}>‹ Anuluj</Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+          style={styles.navSide}
+        >
+          <Text style={[styles.navAction, { color: colors.critical }]}>
+            ‹ Anuluj
+          </Text>
         </TouchableOpacity>
-        <Text style={styles.navTitle}>{planId ? 'Edytuj plan' : 'Nowy plan'}</Text>
-        <TouchableOpacity onPress={handleSave} activeOpacity={0.75} style={styles.navSide}>
-          <Text style={[styles.navAction, { color: colors.critical, textAlign: 'right', fontWeight: '700' }]}>
+        <Text style={styles.navTitle}>
+          {planId ? "Edytuj plan" : "Nowy plan"}
+        </Text>
+        <TouchableOpacity
+          onPress={handleSave}
+          activeOpacity={0.75}
+          style={styles.navSide}
+        >
+          <Text
+            style={[
+              styles.navAction,
+              { color: colors.critical, textAlign: "right", fontWeight: "700" },
+            ]}
+          >
             Zapisz
           </Text>
         </TouchableOpacity>
@@ -87,7 +124,10 @@ export function PlanEditorScreen({ route, navigation }: Props) {
       {/* Plan name */}
       <View style={styles.nameWrap}>
         <TextInput
-          style={[styles.nameInput, { borderColor: name.trim() ? colors.border : colors.borderStrong }]}
+          style={[
+            styles.nameInput,
+            { borderColor: name.trim() ? colors.border : colors.borderStrong },
+          ]}
           placeholder="Nazwa planu…"
           placeholderTextColor={colors.textMuted}
           value={name}
@@ -113,15 +153,34 @@ export function PlanEditorScreen({ route, navigation }: Props) {
               activeOpacity={0.7}
               style={[
                 styles.dayPill,
-                isSelected && { borderColor: colors.critical, backgroundColor: colors.bgElevated },
-                isEmpty && !isSelected && { borderColor: 'rgba(255,80,80,0.6)' },
+                isSelected && {
+                  borderColor: colors.critical,
+                  backgroundColor: colors.bgElevated,
+                },
+                isEmpty &&
+                  !isSelected && { borderColor: "rgba(255,80,80,0.6)" },
               ]}
             >
-              <Text style={[styles.dayPillLabel, isSelected && { color: colors.textPrimary }]}>{d}</Text>
-              <Text style={[
-                styles.dayPillCount,
-                { color: isEmpty ? 'rgba(255,80,80,0.8)' : isSelected ? colors.critical : colors.textMuted },
-              ]}>
+              <Text
+                style={[
+                  styles.dayPillLabel,
+                  isSelected && { color: colors.textPrimary },
+                ]}
+              >
+                {d}
+              </Text>
+              <Text
+                style={[
+                  styles.dayPillCount,
+                  {
+                    color: isEmpty
+                      ? "rgba(255,80,80,0.8)"
+                      : isSelected
+                        ? colors.critical
+                        : colors.textMuted,
+                  },
+                ]}
+              >
                 {days[i].length}
               </Text>
             </TouchableOpacity>
@@ -137,7 +196,10 @@ export function PlanEditorScreen({ route, navigation }: Props) {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + Spacing.lg }]}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingBottom: insets.bottom + Spacing.lg },
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -145,23 +207,42 @@ export function PlanEditorScreen({ route, navigation }: Props) {
         {currentIds.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>WYBRANE</Text>
-            {currentIds.map(id => {
+            {currentIds.map((id) => {
               const ex = EXERCISES_BY_ID[id];
               const color = categoryColors[ex.category];
               return (
-                <View key={id} style={[styles.exRow, { borderLeftColor: color, borderColor: colors.border }]}>
+                <View
+                  key={id}
+                  style={[
+                    styles.exRow,
+                    { borderLeftColor: color, borderColor: colors.border },
+                  ]}
+                >
                   <Text style={styles.exEmoji}>{ex.emoji}</Text>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.exName}>{ex.name}</Text>
-                    <Text style={styles.exMeta}>{ex.categoryLabel} · {ex.timeMin}{ex.timeMin !== ex.timeMax ? `–${ex.timeMax}` : ''} min</Text>
+                    <Text style={styles.exMeta}>
+                      {ex.categoryLabel} · {ex.timeMin}
+                      {ex.timeMin !== ex.timeMax ? `–${ex.timeMax}` : ""} min
+                    </Text>
                   </View>
                   <TouchableOpacity
                     onPress={() => removeExercise(id)}
                     activeOpacity={0.7}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    style={[styles.removeBtn, { borderColor: colors.borderStrong }]}
+                    style={[
+                      styles.removeBtn,
+                      { borderColor: colors.borderStrong },
+                    ]}
                   >
-                    <Text style={[styles.removeBtnText, { color: colors.textMuted }]}>✕</Text>
+                    <Text
+                      style={[
+                        styles.removeBtnText,
+                        { color: colors.textMuted },
+                      ]}
+                    >
+                      ✕
+                    </Text>
                   </TouchableOpacity>
                 </View>
               );
@@ -173,21 +254,29 @@ export function PlanEditorScreen({ route, navigation }: Props) {
         {currentIds.length < 5 && available.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>DOSTĘPNE — DOTKNIJ BY DODAĆ</Text>
-            {available.map(ex => {
+            {available.map((ex) => {
               const color = categoryColors[ex.category];
               return (
                 <TouchableOpacity
                   key={ex.id}
                   onPress={() => addExercise(ex.id)}
                   activeOpacity={0.75}
-                  style={[styles.exRowAvail, { borderLeftColor: color, borderColor: colors.border }]}
+                  style={[
+                    styles.exRowAvail,
+                    { borderLeftColor: color, borderColor: colors.border },
+                  ]}
                 >
                   <Text style={styles.exEmoji}>{ex.emoji}</Text>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.exName}>{ex.name}</Text>
-                    <Text style={styles.exMeta}>{ex.categoryLabel} · {ex.timeMin}{ex.timeMin !== ex.timeMax ? `–${ex.timeMax}` : ''} min</Text>
+                    <Text style={styles.exMeta}>
+                      {ex.categoryLabel} · {ex.timeMin}
+                      {ex.timeMin !== ex.timeMax ? `–${ex.timeMax}` : ""} min
+                    </Text>
                   </View>
-                  <Text style={[styles.addIcon, { color: colors.textMuted }]}>+</Text>
+                  <Text style={[styles.addIcon, { color: colors.textMuted }]}>
+                    +
+                  </Text>
                 </TouchableOpacity>
               );
             })}
@@ -195,8 +284,15 @@ export function PlanEditorScreen({ route, navigation }: Props) {
         )}
 
         {currentIds.length >= 5 && (
-          <View style={[styles.limitNote, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
-            <Text style={styles.limitNoteText}>Osiągnięto limit 5 ćwiczeń na ten dzień.</Text>
+          <View
+            style={[
+              styles.limitNote,
+              { backgroundColor: colors.bgCard, borderColor: colors.border },
+            ]}
+          >
+            <Text style={styles.limitNoteText}>
+              Osiągnięto limit 5 ćwiczeń na ten dzień.
+            </Text>
           </View>
         )}
       </ScrollView>
@@ -209,17 +305,21 @@ function makeStyles(colors: ColorScheme) {
     container: { flex: 1, backgroundColor: colors.bg },
 
     navbar: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
       paddingHorizontal: Spacing.lg,
       paddingVertical: Spacing.sm,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
     navSide: { minWidth: 70 },
-    navTitle: { fontSize: FontSize.md, fontWeight: '600', color: colors.textPrimary },
-    navAction: { fontSize: FontSize.md, fontWeight: '600' },
+    navTitle: {
+      fontSize: FontSize.md,
+      fontWeight: "600",
+      color: colors.textPrimary,
+    },
+    navAction: { fontSize: FontSize.md, fontWeight: "600" },
 
     nameWrap: {
       paddingHorizontal: Spacing.lg,
@@ -235,35 +335,48 @@ function makeStyles(colors: ColorScheme) {
       paddingVertical: Spacing.sm,
       fontSize: FontSize.md,
       color: colors.textPrimary,
-      fontWeight: '500',
+      fontWeight: "500",
     },
 
     dayScrollWrap: { height: 72, flexShrink: 0, flexGrow: 0 },
-    dayScroll: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, gap: 8, alignItems: 'center' },
+    dayScroll: {
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.sm,
+      gap: 8,
+      alignItems: "center",
+    },
     dayPill: {
       paddingHorizontal: Spacing.md,
       height: 52,
       borderRadius: Radius.full,
       borderWidth: 1,
       borderColor: colors.border,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       minWidth: 46,
       gap: 2,
     },
-    dayPillLabel: { fontSize: FontSize.sm, color: colors.textMuted, fontWeight: '600' },
-    dayPillCount: { fontSize: 11, fontWeight: '700' },
+    dayPillLabel: {
+      fontSize: FontSize.sm,
+      color: colors.textMuted,
+      fontWeight: "600",
+    },
+    dayPillCount: { fontSize: 11, fontWeight: "700" },
 
     dayBar: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
       paddingHorizontal: Spacing.lg,
       paddingVertical: Spacing.sm,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    dayBarTitle: { fontSize: FontSize.md, fontWeight: '600', color: colors.textPrimary },
+    dayBarTitle: {
+      fontSize: FontSize.md,
+      fontWeight: "600",
+      color: colors.textPrimary,
+    },
     dayBarCount: { fontSize: FontSize.xs, color: colors.textMuted },
 
     scroll: { padding: Spacing.lg, gap: Spacing.lg },
@@ -271,14 +384,14 @@ function makeStyles(colors: ColorScheme) {
     section: { gap: Spacing.sm },
     sectionLabel: {
       fontSize: 10,
-      fontWeight: '700',
+      fontWeight: "700",
       color: colors.textMuted,
       letterSpacing: 1.5,
     },
 
     exRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       backgroundColor: colors.bgCard,
       borderRadius: Radius.md,
       borderWidth: 1,
@@ -288,8 +401,8 @@ function makeStyles(colors: ColorScheme) {
       gap: Spacing.sm,
     },
     exRowAvail: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       backgroundColor: colors.bgCard,
       borderRadius: Radius.md,
       borderWidth: 1,
@@ -298,26 +411,35 @@ function makeStyles(colors: ColorScheme) {
       paddingHorizontal: Spacing.md,
       gap: Spacing.sm,
     },
-    exEmoji: { fontSize: 20, width: 28, textAlign: 'center' },
-    exName: { fontSize: FontSize.sm, color: colors.textPrimary, fontWeight: '500' },
+    exEmoji: { fontSize: 20, width: 28, textAlign: "center" },
+    exName: {
+      fontSize: FontSize.sm,
+      color: colors.textPrimary,
+      fontWeight: "500",
+    },
     exMeta: { fontSize: FontSize.xs, color: colors.textMuted, marginTop: 2 },
 
     removeBtn: {
-      width: 28, height: 28,
+      width: 28,
+      height: 28,
       borderRadius: 14,
       borderWidth: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
     },
-    removeBtnText: { fontSize: 12, fontWeight: '700' },
-    addIcon: { fontSize: 22, fontWeight: '300', lineHeight: 24 },
+    removeBtnText: { fontSize: 12, fontWeight: "700" },
+    addIcon: { fontSize: 22, fontWeight: "300", lineHeight: 24 },
 
     limitNote: {
       borderRadius: Radius.md,
       borderWidth: 1,
       padding: Spacing.md,
-      alignItems: 'center',
+      alignItems: "center",
     },
-    limitNoteText: { fontSize: FontSize.sm, color: colors.textMuted, textAlign: 'center' },
+    limitNoteText: {
+      fontSize: FontSize.sm,
+      color: colors.textMuted,
+      textAlign: "center",
+    },
   });
 }

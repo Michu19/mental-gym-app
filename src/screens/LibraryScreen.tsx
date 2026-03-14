@@ -1,20 +1,24 @@
 // src/screens/LibraryScreen.tsx
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { FontSize, Spacing, Radius, type ColorScheme } from '../theme';
-import { EXERCISES, type Category } from '../data/exercises';
-import { ExerciseCard } from '../components/ExerciseCard';
-import { useTheme } from '../theme/ThemeContext';
+import { FontSize, Spacing, Radius, type ColorScheme } from "../theme";
+import { EXERCISES, type Category } from "../data/exercises";
+import { ExerciseCard } from "../components/ExerciseCard";
+import { useTheme } from "../theme/ThemeContext";
 
-const FILTERS: { key: Category | 'all'; label: string }[] = [
-  { key: 'all',          label: 'Wszystkie' },
-  { key: 'kreatywnosc',  label: 'Kreatywność' },
-  { key: 'krytyczne',    label: 'Krytyczne' },
-  { key: 'mindfulness',  label: 'Mindfulness' },
+const FILTERS: { key: Category | "all"; label: string }[] = [
+  { key: "all", label: "Wszystkie" },
+  { key: "kreatywnosc", label: "Kreatywność" },
+  { key: "krytyczne", label: "Krytyczne" },
+  { key: "mindfulness", label: "Mindfulness" },
 ];
 
 interface Props {
@@ -23,12 +27,13 @@ interface Props {
 
 export function LibraryScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const [filter, setFilter] = useState<Category | 'all'>('all');
+  const [filter, setFilter] = useState<Category | "all">("all");
   const { colors, categoryColors } = useTheme();
 
-  const filtered = filter === 'all'
-    ? EXERCISES
-    : EXERCISES.filter(e => e.category === filter);
+  const filtered =
+    filter === "all"
+      ? EXERCISES
+      : EXERCISES.filter((e) => e.category === filter);
 
   const styles = makeStyles(colors);
 
@@ -46,9 +51,10 @@ export function LibraryScreen({ navigation }: Props) {
         contentContainerStyle={styles.filters}
         style={styles.filtersScroll}
       >
-        {FILTERS.map(f => {
+        {FILTERS.map((f) => {
           const active = filter === f.key;
-          const color = f.key !== 'all' ? categoryColors[f.key] : colors.textPrimary;
+          const color =
+            f.key !== "all" ? categoryColors[f.key] : colors.textPrimary;
           return (
             <TouchableOpacity
               key={f.key}
@@ -56,7 +62,10 @@ export function LibraryScreen({ navigation }: Props) {
               activeOpacity={0.7}
               style={[
                 styles.filterChip,
-                active && { backgroundColor: color + '22', borderColor: color + '80' },
+                active && {
+                  backgroundColor: color + "22",
+                  borderColor: color + "80",
+                },
               ]}
             >
               <Text style={[styles.filterText, active && { color }]}>
@@ -68,18 +77,23 @@ export function LibraryScreen({ navigation }: Props) {
       </ScrollView>
 
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 80 }]}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingBottom: insets.bottom + 80 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.count}>{filtered.length} ćwiczeń</Text>
-        {filtered.map(ex => (
+        {filtered.map((ex) => (
           <ExerciseCard
             key={ex.id}
             exercise={ex}
             index={EXERCISES.indexOf(ex)}
             done={false}
             onToggle={() => {}}
-            onPress={() => navigation?.navigate('ExerciseDetail', { exerciseId: ex.id })}
+            onPress={() =>
+              navigation?.navigate("ExerciseDetail", { exerciseId: ex.id })
+            }
             compact
           />
         ))}
@@ -97,23 +111,46 @@ function makeStyles(colors: ColorScheme) {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    subtitle: { fontSize: FontSize.xs, color: colors.textMuted, letterSpacing: 3, marginBottom: 2 },
-    title: { fontSize: FontSize.xxl, fontWeight: '300', color: colors.textPrimary },
+    subtitle: {
+      fontSize: FontSize.xs,
+      color: colors.textMuted,
+      letterSpacing: 3,
+      marginBottom: 2,
+    },
+    title: {
+      fontSize: FontSize.xxl,
+      fontWeight: "300",
+      color: colors.textPrimary,
+    },
 
     filtersScroll: { flexShrink: 0, flexGrow: 0, height: 56 },
-    filters: { paddingHorizontal: Spacing.lg, gap: 8, alignItems: 'center', flexGrow: 1 },
+    filters: {
+      paddingHorizontal: Spacing.lg,
+      gap: 8,
+      alignItems: "center",
+      flexGrow: 1,
+    },
     filterChip: {
       paddingHorizontal: Spacing.md,
       height: 36,
       borderRadius: Radius.full,
       borderWidth: 1,
       borderColor: colors.border,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
     },
-    filterText: { fontSize: FontSize.sm, color: colors.textMuted, fontWeight: '500' },
+    filterText: {
+      fontSize: FontSize.sm,
+      color: colors.textMuted,
+      fontWeight: "500",
+    },
 
     scroll: { padding: Spacing.lg },
-    count: { fontSize: FontSize.xs, color: colors.textMuted, marginBottom: Spacing.md, letterSpacing: 1 },
+    count: {
+      fontSize: FontSize.xs,
+      color: colors.textMuted,
+      marginBottom: Spacing.md,
+      letterSpacing: 1,
+    },
   });
 }

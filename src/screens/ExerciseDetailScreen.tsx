@@ -1,17 +1,26 @@
 // src/screens/ExerciseDetailScreen.tsx
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, TextInput,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
 
-import { FontSize, Spacing, Radius, type ColorScheme } from '../theme';
-import { EXERCISES_BY_ID, formatTime } from '../data/exercises';
-import { useTimer, useNoteHistory } from '../hooks/useProgress';
-import { CategoryBadge, CheckButton, Divider, SectionLabel } from '../components/ui';
-import { useTheme } from '../theme/ThemeContext';
+import { FontSize, Spacing, Radius, type ColorScheme } from "../theme";
+import { EXERCISES_BY_ID, formatTime } from "../data/exercises";
+import { useTimer, useNoteHistory } from "../hooks/useProgress";
+import {
+  CategoryBadge,
+  CheckButton,
+  Divider,
+  SectionLabel,
+} from "../components/ui";
+import { useTheme } from "../theme/ThemeContext";
 
 interface Props {
   route: { params: { exerciseId: string } };
@@ -25,7 +34,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
   const { colors, categoryColors } = useTheme();
   const accentColor = categoryColors[ex.category];
   const [done, setDone] = useState(false);
-  const [draftNote, setDraftNote] = useState('');
+  const [draftNote, setDraftNote] = useState("");
   const { notes, addNote, deleteNote } = useNoteHistory(exerciseId);
 
   const timer = useTimer(ex.timeMin * 60);
@@ -52,25 +61,42 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Nav bar */}
       <View style={styles.navbar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.7}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+          activeOpacity={0.7}
+        >
           <Text style={[styles.backText, { color: accentColor }]}>‹ Wróć</Text>
         </TouchableOpacity>
         <Text style={styles.navTitle}>#{ex.id}</Text>
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + Spacing.xl }]}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingBottom: insets.bottom + Spacing.xl },
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         {/* Hero */}
-        <View style={[styles.hero, { backgroundColor: accentColor + '12', borderColor: accentColor + '30' }]}>
+        <View
+          style={[
+            styles.hero,
+            {
+              backgroundColor: accentColor + "12",
+              borderColor: accentColor + "30",
+            },
+          ]}
+        >
           <Text style={styles.heroEmoji}>{ex.emoji}</Text>
           <Text style={styles.heroName}>{ex.name}</Text>
           <View style={styles.heroBadges}>
             <CategoryBadge category={ex.category} label={ex.categoryLabel} />
             <View style={styles.timePillLarge}>
-              <Text style={styles.timePillText}>⏱ {formatTime(ex.timeMin, ex.timeMax)}</Text>
+              <Text style={styles.timePillText}>
+                ⏱ {formatTime(ex.timeMin, ex.timeMax)}
+              </Text>
             </View>
           </View>
         </View>
@@ -84,11 +110,25 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
         <View style={styles.timerSection}>
           <SectionLabel text="Timer" color={accentColor} />
           <View style={styles.timerRow}>
-            <View style={[styles.timerDisplay, { borderColor: timer.running ? accentColor : colors.border }]}>
-              <Text style={[styles.timerText, {
-                color: timer.finished ? colors.success : timer.running ? accentColor : colors.textPrimary,
-              }]}>
-                {timer.finished ? '✓ Czas!' : timer.formatted}
+            <View
+              style={[
+                styles.timerDisplay,
+                { borderColor: timer.running ? accentColor : colors.border },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.timerText,
+                  {
+                    color: timer.finished
+                      ? colors.success
+                      : timer.running
+                        ? accentColor
+                        : colors.textPrimary,
+                  },
+                ]}
+              >
+                {timer.finished ? "✓ Czas!" : timer.formatted}
               </Text>
             </View>
             <View style={styles.timerBtns}>
@@ -98,7 +138,11 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                 style={[styles.timerBtn, { backgroundColor: accentColor }]}
               >
                 <Text style={styles.timerBtnText}>
-                  {timer.running ? 'Pauza' : timer.finished ? 'Od nowa' : 'Start'}
+                  {timer.running
+                    ? "Pauza"
+                    : timer.finished
+                      ? "Od nowa"
+                      : "Start"}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -111,16 +155,18 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
             </View>
           </View>
           <View style={styles.timerOptions}>
-            {[ex.timeMin, ex.timeMax].filter((v, i, a) => a.indexOf(v) === i).map(min => (
-              <TouchableOpacity
-                key={min}
-                onPress={() => timer.reset(min * 60)}
-                activeOpacity={0.7}
-                style={styles.timerOption}
-              >
-                <Text style={styles.timerOptionText}>{min} min</Text>
-              </TouchableOpacity>
-            ))}
+            {[ex.timeMin, ex.timeMax]
+              .filter((v, i, a) => a.indexOf(v) === i)
+              .map((min) => (
+                <TouchableOpacity
+                  key={min}
+                  onPress={() => timer.reset(min * 60)}
+                  activeOpacity={0.7}
+                  style={styles.timerOption}
+                >
+                  <Text style={styles.timerOptionText}>{min} min</Text>
+                </TouchableOpacity>
+              ))}
           </View>
         </View>
 
@@ -149,15 +195,31 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
           <View style={styles.noteHeader}>
             <SectionLabel text="Historia notatek" color={accentColor} />
             {notes.length > 0 && (
-              <View style={[styles.noteCount, { backgroundColor: accentColor + '22', borderColor: accentColor + '55' }]}>
-                <Text style={[styles.noteCountText, { color: accentColor }]}>{notes.length}</Text>
+              <View
+                style={[
+                  styles.noteCount,
+                  {
+                    backgroundColor: accentColor + "22",
+                    borderColor: accentColor + "55",
+                  },
+                ]}
+              >
+                <Text style={[styles.noteCountText, { color: accentColor }]}>
+                  {notes.length}
+                </Text>
               </View>
             )}
           </View>
 
           <View style={styles.noteAdd}>
             <TextInput
-              style={[styles.noteInput, { borderColor: draftNote.length > 0 ? accentColor + '80' : colors.border }]}
+              style={[
+                styles.noteInput,
+                {
+                  borderColor:
+                    draftNote.length > 0 ? accentColor + "80" : colors.border,
+                },
+              ]}
               multiline
               placeholder="Zapisz przemyślenia po ćwiczeniu…"
               placeholderTextColor={colors.textMuted}
@@ -166,44 +228,97 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
               textAlignVertical="top"
             />
             <TouchableOpacity
-              onPress={async () => { await addNote(draftNote); setDraftNote(''); }}
+              onPress={async () => {
+                await addNote(draftNote);
+                setDraftNote("");
+              }}
               activeOpacity={0.75}
               disabled={!draftNote.trim()}
               style={[
                 styles.noteSaveBtn,
                 draftNote.trim()
                   ? { backgroundColor: accentColor }
-                  : { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.borderStrong },
+                  : {
+                      backgroundColor: "transparent",
+                      borderWidth: 1,
+                      borderColor: colors.borderStrong,
+                    },
               ]}
             >
-              <Text style={[styles.noteSaveBtnText, { color: draftNote.trim() ? colors.white : colors.textMuted }]}>
+              <Text
+                style={[
+                  styles.noteSaveBtnText,
+                  { color: draftNote.trim() ? colors.white : colors.textMuted },
+                ]}
+              >
                 Zapisz notatkę
               </Text>
             </TouchableOpacity>
           </View>
 
           {notes.length === 0 ? (
-            <View style={[styles.noteEmpty, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
-              <Text style={styles.noteEmptyText}>Brak notatek — dodaj pierwszą po ćwiczeniu 📝</Text>
+            <View
+              style={[
+                styles.noteEmpty,
+                { backgroundColor: colors.bgCard, borderColor: colors.border },
+              ]}
+            >
+              <Text style={styles.noteEmptyText}>
+                Brak notatek — dodaj pierwszą po ćwiczeniu 📝
+              </Text>
             </View>
           ) : (
             <View style={styles.noteList}>
               {notes.map((entry) => {
                 const date = new Date(entry.createdAt);
-                const label = date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const label = date.toLocaleDateString("pl-PL", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
                 return (
-                  <View key={entry.id} style={[styles.noteEntry, { borderLeftColor: accentColor, borderColor: colors.border }]}>
+                  <View
+                    key={entry.id}
+                    style={[
+                      styles.noteEntry,
+                      {
+                        borderLeftColor: accentColor,
+                        borderColor: colors.border,
+                      },
+                    ]}
+                  >
                     <View style={styles.noteEntryHeader}>
-                      <View style={[styles.noteEntryDatePill, { backgroundColor: accentColor + '18' }]}>
-                        <Text style={[styles.noteEntryDate, { color: accentColor }]}>{label}</Text>
+                      <View
+                        style={[
+                          styles.noteEntryDatePill,
+                          { backgroundColor: accentColor + "18" },
+                        ]}
+                      >
+                        <Text
+                          style={[styles.noteEntryDate, { color: accentColor }]}
+                        >
+                          {label}
+                        </Text>
                       </View>
                       <TouchableOpacity
                         onPress={() => deleteNote(entry.id)}
                         activeOpacity={0.7}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        style={[styles.noteDeleteBtn, { borderColor: colors.borderStrong }]}
+                        style={[
+                          styles.noteDeleteBtn,
+                          { borderColor: colors.borderStrong },
+                        ]}
                       >
-                        <Text style={[styles.noteEntryDelete, { color: colors.textMuted }]}>✕</Text>
+                        <Text
+                          style={[
+                            styles.noteEntryDelete,
+                            { color: colors.textMuted },
+                          ]}
+                        >
+                          ✕
+                        </Text>
                       </TouchableOpacity>
                     </View>
                     <Text style={styles.noteEntryText}>{entry.text}</Text>
@@ -229,9 +344,9 @@ function makeStyles(colors: ColorScheme) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.bg },
     navbar: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
       paddingHorizontal: Spacing.lg,
       paddingVertical: Spacing.sm,
       borderBottomWidth: 1,
@@ -239,20 +354,34 @@ function makeStyles(colors: ColorScheme) {
     },
     backBtn: { padding: 4 },
     backText: { fontSize: FontSize.md },
-    navTitle: { fontSize: FontSize.sm, color: colors.textMuted, fontWeight: '600' },
+    navTitle: {
+      fontSize: FontSize.sm,
+      color: colors.textMuted,
+      fontWeight: "600",
+    },
 
     scroll: { padding: Spacing.lg, gap: Spacing.lg },
 
     hero: {
       borderRadius: Radius.xl,
       padding: Spacing.xl,
-      alignItems: 'center',
+      alignItems: "center",
       borderWidth: 1,
       gap: Spacing.sm,
     },
     heroEmoji: { fontSize: 48 },
-    heroName: { fontSize: FontSize.xl, fontWeight: '600', color: colors.textPrimary, textAlign: 'center' },
-    heroBadges: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' },
+    heroName: {
+      fontSize: FontSize.xl,
+      fontWeight: "600",
+      color: colors.textPrimary,
+      textAlign: "center",
+    },
+    heroBadges: {
+      flexDirection: "row",
+      gap: 8,
+      flexWrap: "wrap",
+      justifyContent: "center",
+    },
     timePillLarge: {
       paddingHorizontal: 12,
       paddingVertical: 5,
@@ -263,38 +392,46 @@ function makeStyles(colors: ColorScheme) {
     },
     timePillText: { fontSize: FontSize.xs, color: colors.textMuted },
 
-    description: { fontSize: FontSize.md, color: colors.textSecondary, lineHeight: 24 },
+    description: {
+      fontSize: FontSize.md,
+      color: colors.textSecondary,
+      lineHeight: 24,
+    },
 
     timerSection: { gap: Spacing.md },
-    timerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+    timerRow: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
     timerDisplay: {
       flex: 1,
       paddingVertical: Spacing.lg,
       borderRadius: Radius.lg,
       borderWidth: 2,
-      alignItems: 'center',
+      alignItems: "center",
       backgroundColor: colors.bgCard,
     },
-    timerText: { fontSize: 40, fontWeight: '200', letterSpacing: 2 },
+    timerText: { fontSize: 40, fontWeight: "200", letterSpacing: 2 },
     timerBtns: { gap: 8 },
     timerBtn: {
       paddingHorizontal: Spacing.lg,
       paddingVertical: Spacing.sm,
       borderRadius: Radius.md,
-      alignItems: 'center',
+      alignItems: "center",
       minWidth: 80,
     },
-    timerBtnText: { color: colors.white, fontWeight: '600', fontSize: FontSize.sm },
+    timerBtnText: {
+      color: colors.white,
+      fontWeight: "600",
+      fontSize: FontSize.sm,
+    },
     timerBtnSecondary: {
       paddingHorizontal: Spacing.lg,
       paddingVertical: Spacing.sm,
       borderRadius: Radius.md,
-      alignItems: 'center',
+      alignItems: "center",
       borderWidth: 1,
       borderColor: colors.borderStrong,
     },
     timerBtnSecondaryText: { color: colors.textMuted, fontSize: FontSize.sm },
-    timerOptions: { flexDirection: 'row', gap: 8 },
+    timerOptions: { flexDirection: "row", gap: 8 },
     timerOption: {
       paddingHorizontal: Spacing.md,
       paddingVertical: 6,
@@ -311,17 +448,26 @@ function makeStyles(colors: ColorScheme) {
       padding: Spacing.md,
       borderLeftWidth: 3,
     },
-    promptText: { fontSize: FontSize.sm, color: colors.textPrimary, lineHeight: 24 },
-    tipText: { fontSize: FontSize.sm, color: colors.textMuted, fontStyle: 'italic', lineHeight: 22 },
+    promptText: {
+      fontSize: FontSize.sm,
+      color: colors.textPrimary,
+      lineHeight: 24,
+    },
+    tipText: {
+      fontSize: FontSize.sm,
+      color: colors.textMuted,
+      fontStyle: "italic",
+      lineHeight: 22,
+    },
 
-    noteHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+    noteHeader: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
     noteCount: {
       paddingHorizontal: 8,
       paddingVertical: 2,
       borderRadius: Radius.full,
       borderWidth: 1,
     },
-    noteCountText: { fontSize: FontSize.xs, fontWeight: '700' },
+    noteCountText: { fontSize: FontSize.xs, fontWeight: "700" },
 
     noteAdd: { gap: Spacing.sm },
     noteInput: {
@@ -337,17 +483,22 @@ function makeStyles(colors: ColorScheme) {
     noteSaveBtn: {
       borderRadius: Radius.md,
       paddingVertical: Spacing.sm,
-      alignItems: 'center',
+      alignItems: "center",
     },
-    noteSaveBtnText: { fontWeight: '600', fontSize: FontSize.sm },
+    noteSaveBtnText: { fontWeight: "600", fontSize: FontSize.sm },
 
     noteEmpty: {
       borderRadius: Radius.md,
       borderWidth: 1,
       padding: Spacing.md,
-      alignItems: 'center',
+      alignItems: "center",
     },
-    noteEmptyText: { fontSize: FontSize.sm, color: colors.textMuted, textAlign: 'center', lineHeight: 22 },
+    noteEmptyText: {
+      fontSize: FontSize.sm,
+      color: colors.textMuted,
+      textAlign: "center",
+      lineHeight: 22,
+    },
 
     noteList: { gap: Spacing.sm },
     noteEntry: {
@@ -358,18 +509,34 @@ function makeStyles(colors: ColorScheme) {
       padding: Spacing.md,
       gap: 8,
     },
-    noteEntryHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    noteEntryDatePill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: Radius.full },
-    noteEntryDate: { fontSize: FontSize.xs, fontWeight: '600', letterSpacing: 0.3 },
+    noteEntryHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    noteEntryDatePill: {
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: Radius.full,
+    },
+    noteEntryDate: {
+      fontSize: FontSize.xs,
+      fontWeight: "600",
+      letterSpacing: 0.3,
+    },
     noteDeleteBtn: {
-      width: 26, height: 26,
+      width: 26,
+      height: 26,
       borderRadius: 13,
       borderWidth: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
     },
-    noteEntryDelete: { fontSize: 11, fontWeight: '700' },
-    noteEntryText: { fontSize: FontSize.sm, color: colors.textPrimary, lineHeight: 22 },
+    noteEntryDelete: { fontSize: 11, fontWeight: "700" },
+    noteEntryText: {
+      fontSize: FontSize.sm,
+      color: colors.textPrimary,
+      lineHeight: 22,
+    },
   });
 }
-

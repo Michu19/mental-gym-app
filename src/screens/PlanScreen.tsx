@@ -78,7 +78,9 @@ export function PlanScreen({ navigation }: Props) {
             activeOpacity={0.75}
             style={styles.editPlanBtn}
           >
-            <Text style={[styles.editPlanBtnText, { color: colors.textSecondary }]}>
+            <Text
+              style={[styles.editPlanBtnText, { color: colors.textSecondary }]}
+            >
               ✎ Edytuj
             </Text>
           </TouchableOpacity>
@@ -254,7 +256,11 @@ function makeStyles(colors: ColorScheme) {
       borderWidth: 1,
     },
     manageBtnText: { fontSize: FontSize.sm, fontWeight: "600" },
-    planBadgeRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+    planBadgeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.sm,
+    },
     activePlanBadge: {
       alignSelf: "flex-start",
       paddingHorizontal: Spacing.sm,

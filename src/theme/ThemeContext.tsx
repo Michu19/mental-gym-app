@@ -1,9 +1,20 @@
 // src/theme/ThemeContext.tsx
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { type ColorScheme, DarkColors, LightColors, makeCategoryColors } from './index';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  type ColorScheme,
+  DarkColors,
+  LightColors,
+  makeCategoryColors,
+} from "./index";
 
-const THEME_KEY = 'app:theme';
+const THEME_KEY = "app:theme";
 
 interface ThemeContextValue {
   isDark: boolean;
@@ -23,15 +34,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
-    AsyncStorage.getItem(THEME_KEY).then(saved => {
-      if (saved === 'light') setIsDark(false);
+    AsyncStorage.getItem(THEME_KEY).then((saved) => {
+      if (saved === "light") setIsDark(false);
     });
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setIsDark(prev => {
+    setIsDark((prev) => {
       const next = !prev;
-      AsyncStorage.setItem(THEME_KEY, next ? 'dark' : 'light');
+      AsyncStorage.setItem(THEME_KEY, next ? "dark" : "light");
       return next;
     });
   }, []);
@@ -40,7 +51,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const categoryColors = makeCategoryColors(colors);
 
   return (
-    <ThemeContext.Provider value={{ isDark, colors, categoryColors, toggleTheme }}>
+    <ThemeContext.Provider
+      value={{ isDark, colors, categoryColors, toggleTheme }}
+    >
       {children}
     </ThemeContext.Provider>
   );

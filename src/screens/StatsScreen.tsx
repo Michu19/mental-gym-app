@@ -1,16 +1,21 @@
 // src/screens/StatsScreen.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { FontSize, Spacing, Radius, type ColorScheme } from '../theme';
-import { KEY_PREFIX, useProgress } from '../hooks/useProgress';
-import { useTheme } from '../theme/ThemeContext';
+import { FontSize, Spacing, Radius, type ColorScheme } from "../theme";
+import { KEY_PREFIX } from "../hooks/useProgress";
+import { useProgressContext as useProgress } from "../hooks/ProgressContext";
+import { useTheme } from "../theme/ThemeContext";
 
-const SHORT_DAYS = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
+const SHORT_DAYS = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"];
 
 function getLastNDates(n: number): string[] {
   const result: string[] = [];
@@ -18,7 +23,7 @@ function getLastNDates(n: number): string[] {
   for (let i = n - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
-    result.push(d.toISOString().split('T')[0]);
+    result.push(d.toISOString().split("T")[0]);
   }
   return result;
 }
@@ -30,17 +35,17 @@ export function StatsScreen() {
   const [weekActivity, setWeekActivity] = useState<boolean[]>([]);
 
   const weekDates = getLastNDates(7);
-  const todayDate = new Date().toISOString().split('T')[0];
+  const todayDate = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
     (async () => {
       const allKeys = await AsyncStorage.getAllKeys();
-      const results = weekDates.map(date =>
-        allKeys.some(k => k.startsWith(`${KEY_PREFIX}${date}:`))
+      const results = weekDates.map((date) =>
+        allKeys.some((k) => k.startsWith(`${KEY_PREFIX}${date}:`)),
       );
       setWeekActivity(results);
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streak]); // re-check when streak changes (i.e. after exercise toggle)
 
   const styles = makeStyles(colors);
@@ -53,7 +58,10 @@ export function StatsScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 80 }]}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingBottom: insets.bottom + 80 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Streak */}
@@ -61,7 +69,7 @@ export function StatsScreen() {
           <Text style={styles.streakEmoji}>🔥</Text>
           <Text style={styles.streakNumber}>{streak}</Text>
           <Text style={styles.streakLabel}>
-            {streak === 1 ? 'dzień z rzędu' : 'dni z rzędu'}
+            {streak === 1 ? "dzień z rzędu" : "dni z rzędu"}
           </Text>
         </View>
 
@@ -69,12 +77,15 @@ export function StatsScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Dziś</Text>
           <View style={styles.todayRow}>
-            {[0, 1, 2].map(i => (
+            {[0, 1, 2].map((i) => (
               <View
                 key={i}
                 style={[
                   styles.todayDot,
-                  i < completedCount && { backgroundColor: colors.success, borderColor: colors.success },
+                  i < completedCount && {
+                    backgroundColor: colors.success,
+                    borderColor: colors.success,
+                  },
                 ]}
               />
             ))}
@@ -89,17 +100,30 @@ export function StatsScreen() {
             {weekDates.map((date, i) => {
               const active = weekActivity[i] ?? false;
               const isToday = date === todayDate;
-              const weekday = new Date(date + 'T12:00:00').getDay();
+              const weekday = new Date(date + "T12:00:00").getDay();
               const dayIdx = (weekday + 6) % 7; // 0=Mon
               return (
                 <View key={date} style={styles.heatmapCol}>
-                  <Text style={styles.heatmapDayLabel}>{SHORT_DAYS[dayIdx]}</Text>
-                  <View style={[
-                    styles.heatmapBox,
-                    active && { backgroundColor: colors.success + '50', borderColor: colors.success },
-                    isToday && !active && { borderColor: colors.critical },
-                  ]}>
-                    {active && <Text style={[styles.heatmapCheck, { color: colors.success }]}>✓</Text>}
+                  <Text style={styles.heatmapDayLabel}>
+                    {SHORT_DAYS[dayIdx]}
+                  </Text>
+                  <View
+                    style={[
+                      styles.heatmapBox,
+                      active && {
+                        backgroundColor: colors.success + "50",
+                        borderColor: colors.success,
+                      },
+                      isToday && !active && { borderColor: colors.critical },
+                    ]}
+                  >
+                    {active && (
+                      <Text
+                        style={[styles.heatmapCheck, { color: colors.success }]}
+                      >
+                        ✓
+                      </Text>
+                    )}
                   </View>
                 </View>
               );
@@ -108,10 +132,14 @@ export function StatsScreen() {
         </View>
 
         {/* Theme toggle */}
-        <TouchableOpacity style={styles.themeBtn} onPress={toggleTheme} activeOpacity={0.75}>
-          <Text style={styles.themeBtnIcon}>{isDark ? '☀️' : '🌙'}</Text>
+        <TouchableOpacity
+          style={styles.themeBtn}
+          onPress={toggleTheme}
+          activeOpacity={0.75}
+        >
+          <Text style={styles.themeBtnIcon}>{isDark ? "☀️" : "🌙"}</Text>
           <Text style={styles.themeBtnText}>
-            {isDark ? 'Przełącz na jasny motyw' : 'Przełącz na ciemny motyw'}
+            {isDark ? "Przełącz na jasny motyw" : "Przełącz na ciemny motyw"}
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -128,8 +156,17 @@ function makeStyles(colors: ColorScheme) {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    subtitle: { fontSize: FontSize.xs, color: colors.textMuted, letterSpacing: 3, marginBottom: 2 },
-    title: { fontSize: FontSize.xxl, fontWeight: '300', color: colors.textPrimary },
+    subtitle: {
+      fontSize: FontSize.xs,
+      color: colors.textMuted,
+      letterSpacing: 3,
+      marginBottom: 2,
+    },
+    title: {
+      fontSize: FontSize.xxl,
+      fontWeight: "300",
+      color: colors.textPrimary,
+    },
 
     scroll: { padding: Spacing.lg, gap: Spacing.md },
 
@@ -137,14 +174,23 @@ function makeStyles(colors: ColorScheme) {
       backgroundColor: colors.bgCard,
       borderRadius: Radius.xl,
       padding: Spacing.xl,
-      alignItems: 'center',
+      alignItems: "center",
       borderWidth: 1,
       borderColor: colors.border,
       gap: 4,
     },
     streakEmoji: { fontSize: 40 },
-    streakNumber: { fontSize: 72, fontWeight: '200', color: colors.textPrimary, lineHeight: 84 },
-    streakLabel: { fontSize: FontSize.sm, color: colors.textMuted, letterSpacing: 1 },
+    streakNumber: {
+      fontSize: 72,
+      fontWeight: "200",
+      color: colors.textPrimary,
+      lineHeight: 84,
+    },
+    streakLabel: {
+      fontSize: FontSize.sm,
+      color: colors.textMuted,
+      letterSpacing: 1,
+    },
 
     card: {
       backgroundColor: colors.bgCard,
@@ -158,10 +204,10 @@ function makeStyles(colors: ColorScheme) {
       fontSize: FontSize.xs,
       color: colors.textMuted,
       letterSpacing: 2,
-      textTransform: 'uppercase',
+      textTransform: "uppercase",
     },
 
-    todayRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    todayRow: { flexDirection: "row", alignItems: "center", gap: 8 },
     todayDot: {
       width: 14,
       height: 14,
@@ -170,27 +216,35 @@ function makeStyles(colors: ColorScheme) {
       borderWidth: 1,
       borderColor: colors.borderStrong,
     },
-    todayText: { fontSize: FontSize.md, color: colors.textSecondary, marginLeft: 4 },
+    todayText: {
+      fontSize: FontSize.md,
+      color: colors.textSecondary,
+      marginLeft: 4,
+    },
 
-    heatmapRow: { flexDirection: 'row', gap: 6, marginTop: 4 },
-    heatmapCol: { flex: 1, alignItems: 'center', gap: 5 },
-    heatmapDayLabel: { fontSize: 9, color: colors.textMuted, letterSpacing: 0.5 },
+    heatmapRow: { flexDirection: "row", gap: 6, marginTop: 4 },
+    heatmapCol: { flex: 1, alignItems: "center", gap: 5 },
+    heatmapDayLabel: {
+      fontSize: 9,
+      color: colors.textMuted,
+      letterSpacing: 0.5,
+    },
     heatmapBox: {
-      width: '100%',
+      width: "100%",
       aspectRatio: 1,
       borderRadius: Radius.sm,
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.bgElevated,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
     },
-    heatmapCheck: { fontSize: 11, fontWeight: '700' },
+    heatmapCheck: { fontSize: 11, fontWeight: "700" },
 
     themeBtn: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
       gap: Spacing.sm,
       backgroundColor: colors.bgCard,
       borderRadius: Radius.lg,
@@ -200,6 +254,10 @@ function makeStyles(colors: ColorScheme) {
       marginTop: Spacing.sm,
     },
     themeBtnIcon: { fontSize: 20 },
-    themeBtnText: { fontSize: FontSize.md, color: colors.textSecondary, fontWeight: '500' },
+    themeBtnText: {
+      fontSize: FontSize.md,
+      color: colors.textSecondary,
+      fontWeight: "500",
+    },
   });
 }

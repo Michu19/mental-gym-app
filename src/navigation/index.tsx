@@ -1,21 +1,25 @@
 // src/navigation/index.tsx
-import React from 'react';
-import { StyleSheet } from 'react-native';
-import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
-import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React from "react";
+import { StyleSheet } from "react-native";
+import {
+  NavigationContainer,
+  DarkTheme,
+  DefaultTheme,
+} from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
+import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { FontSize } from '../theme';
-import { TodayScreen } from '../screens/TodayScreen';
-import { PlanScreen } from '../screens/PlanScreen';
-import { LibraryScreen } from '../screens/LibraryScreen';
-import { StatsScreen } from '../screens/StatsScreen';
-import { ExerciseDetailScreen } from '../screens/ExerciseDetailScreen';
-import { PlanManagerScreen } from '../screens/PlanManagerScreen';
-import { PlanEditorScreen } from '../screens/PlanEditorScreen';
-import { useTheme } from '../theme/ThemeContext';
+import { FontSize } from "../theme";
+import { TodayScreen } from "../screens/TodayScreen";
+import { PlanScreen } from "../screens/PlanScreen";
+import { LibraryScreen } from "../screens/LibraryScreen";
+import { StatsScreen } from "../screens/StatsScreen";
+import { ExerciseDetailScreen } from "../screens/ExerciseDetailScreen";
+import { PlanManagerScreen } from "../screens/PlanManagerScreen";
+import { PlanEditorScreen } from "../screens/PlanEditorScreen";
+import { useTheme } from "../theme/ThemeContext";
 
 export type RootStackParamList = {
   Tabs: undefined;
@@ -57,19 +61,35 @@ function TabNavigator() {
         tabBarLabelStyle: styles.tabLabel,
         tabBarIcon: ({ color, focused }) => {
           const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
-            Today:   focused ? 'today' : 'today-outline',
-            Plan:    focused ? 'calendar' : 'calendar-outline',
-            Library: focused ? 'library' : 'library-outline',
-            Stats:   focused ? 'bar-chart' : 'bar-chart-outline',
+            Today: focused ? "today" : "today-outline",
+            Plan: focused ? "calendar" : "calendar-outline",
+            Library: focused ? "library" : "library-outline",
+            Stats: focused ? "bar-chart" : "bar-chart-outline",
           };
           return <Ionicons name={icons[route.name]} size={22} color={color} />;
         },
       })}
     >
-      <Tab.Screen name="Today"   component={TodayScreen}   options={{ tabBarLabel: 'Dziś' }} />
-      <Tab.Screen name="Plan"    component={PlanScreen}    options={{ tabBarLabel: 'Plan' }} />
-      <Tab.Screen name="Library" component={LibraryScreen} options={{ tabBarLabel: 'Biblioteka' }} />
-      <Tab.Screen name="Stats"   component={StatsScreen}   options={{ tabBarLabel: 'Statystyki' }} />
+      <Tab.Screen
+        name="Today"
+        component={TodayScreen}
+        options={{ tabBarLabel: "Dziś" }}
+      />
+      <Tab.Screen
+        name="Plan"
+        component={PlanScreen}
+        options={{ tabBarLabel: "Plan" }}
+      />
+      <Tab.Screen
+        name="Library"
+        component={LibraryScreen}
+        options={{ tabBarLabel: "Biblioteka" }}
+      />
+      <Tab.Screen
+        name="Stats"
+        component={StatsScreen}
+        options={{ tabBarLabel: "Statystyki" }}
+      />
     </Tab.Navigator>
   );
 }
@@ -96,7 +116,7 @@ export function AppNavigator() {
         <Stack.Screen
           name="ExerciseDetail"
           component={ExerciseDetailScreen}
-          options={{ presentation: 'card' }}
+          options={{ presentation: "card" }}
         />
         <Stack.Screen name="PlanManager" component={PlanManagerScreen} />
         <Stack.Screen name="PlanEditor" component={PlanEditorScreen} />
@@ -112,4 +132,3 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
 });
-

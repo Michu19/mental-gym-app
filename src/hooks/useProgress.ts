@@ -32,6 +32,7 @@ function computeStreakFromKeys(allKeys: readonly string[]): number {
 
 export function useProgress() {
   const [completedToday, setCompletedToday] = useState<Set<string>>(new Set());
+  const [completedByDate, setCompletedByDate] = useState<Record<string, Set<string>>>({});
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -46,6 +47,19 @@ export function useProgress() {
         todayKeys.map((k) => k.split(":")[2]).filter(Boolean),
       );
       setCompletedToday(completed);
+
+      // Build per-day completion map for current week
+      const weekMap: Record<string, Set<string>> = {};
+      const nowDate = new Date();
+      const todayDayOffset = (nowDate.getDay() + 6) % 7; // Mon=0
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(nowDate);
+        d.setDate(nowDate.getDate() - todayDayOffset + i);
+        const dateStr = d.toISOString().split("T")[0];
+        const dayKeys = allKeys.filter((k) => k.startsWith(`${KEY_PREFIX}${dateStr}:`));
+        weekMap[dateStr] = new Set(dayKeys.map((k) => k.split(":")[2]).filter(Boolean));
+      }
+      setCompletedByDate(weekMap);
 
       // Compute streak using the same allKeys fetch
       const streakCount = computeStreakFromKeys(allKeys);
@@ -63,10 +77,11 @@ export function useProgress() {
   }, [loadProgress]);
 
   const toggleExercise = useCallback(
-    async (exerciseId: string) => {
-      const today = todayKey();
-      const key = storageKey(today, exerciseId);
-      const next = new Set(completedToday);
+    async (exerciseId: string, dateStr?: string) => {
+      const date = dateStr ?? todayKey();
+      const key = storageKey(date, exerciseId);
+      const prevSet = completedByDate[date] ?? new Set<string>();
+      const next = new Set(prevSet);
 
       if (next.has(exerciseId)) {
         next.delete(exerciseId);
@@ -76,7 +91,8 @@ export function useProgress() {
         await AsyncStorage.setItem(key, "1");
       }
 
-      setCompletedToday(next);
+      setCompletedByDate((prev) => ({ ...prev, [date]: next }));
+      if (date === todayKey()) setCompletedToday(new Set(next));
 
       // Re-compute streak after toggle
       const allKeys = await AsyncStorage.getAllKeys();
@@ -84,7 +100,7 @@ export function useProgress() {
       setStreak(streakCount);
       await AsyncStorage.setItem("streak", String(streakCount));
     },
-    [completedToday],
+    [completedByDate],
   );
 
   const isCompleted = useCallback(
@@ -102,6 +118,7 @@ export function useProgress() {
 
   return {
     completedToday,
+    completedByDate,
     completedCount: completedToday.size,
     streak,
     loading,
@@ -148,7 +165,7 @@ export function useNote(exerciseId: string) {
 // ─── useNoteHistory ──────────────────────────────────────────────────────
 
 export interface NoteEntry {
-  id: string;      // timestamp string (used as unique key)
+  id: string; // timestamp string (used as unique key)
   text: string;
   createdAt: string; // ISO date string
 }
@@ -161,29 +178,40 @@ export function useNoteHistory(exerciseId: string) {
   useEffect(() => {
     AsyncStorage.getItem(NOTES_KEY(exerciseId)).then((raw) => {
       if (raw) {
-        try { setNotes(JSON.parse(raw)); } catch {}
+        try {
+          setNotes(JSON.parse(raw));
+        } catch {}
       }
     });
   }, [exerciseId]);
 
-  const persist = useCallback(async (next: NoteEntry[]) => {
-    setNotes(next);
-    await AsyncStorage.setItem(NOTES_KEY(exerciseId), JSON.stringify(next));
-  }, [exerciseId]);
+  const persist = useCallback(
+    async (next: NoteEntry[]) => {
+      setNotes(next);
+      await AsyncStorage.setItem(NOTES_KEY(exerciseId), JSON.stringify(next));
+    },
+    [exerciseId],
+  );
 
-  const addNote = useCallback(async (text: string) => {
-    if (!text.trim()) return;
-    const entry: NoteEntry = {
-      id: Date.now().toString(),
-      text: text.trim(),
-      createdAt: new Date().toISOString(),
-    };
-    await persist([entry, ...notes]);
-  }, [notes, persist]);
+  const addNote = useCallback(
+    async (text: string) => {
+      if (!text.trim()) return;
+      const entry: NoteEntry = {
+        id: Date.now().toString(),
+        text: text.trim(),
+        createdAt: new Date().toISOString(),
+      };
+      await persist([entry, ...notes]);
+    },
+    [notes, persist],
+  );
 
-  const deleteNote = useCallback(async (id: string) => {
-    await persist(notes.filter(n => n.id !== id));
-  }, [notes, persist]);
+  const deleteNote = useCallback(
+    async (id: string) => {
+      await persist(notes.filter((n) => n.id !== id));
+    },
+    [notes, persist],
+  );
 
   return { notes, addNote, deleteNote };
 }
