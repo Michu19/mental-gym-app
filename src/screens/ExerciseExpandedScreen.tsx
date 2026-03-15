@@ -232,11 +232,19 @@ interface SectionHeaderProps {
   colors: ColorScheme;
 }
 
-function SectionHeader({ icon, label, color, styles, colors }: SectionHeaderProps) {
+function SectionHeader({
+  icon,
+  label,
+  color,
+  styles,
+  colors,
+}: SectionHeaderProps) {
   return (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionIcon}>{icon}</Text>
-      <Text style={[styles.sectionLabel, { color }]}>{label.toUpperCase()}</Text>
+      <Text style={[styles.sectionLabel, { color }]}>
+        {label.toUpperCase()}
+      </Text>
       <View style={[styles.sectionLine, { backgroundColor: colors.border }]} />
     </View>
   );
@@ -268,9 +276,7 @@ function ExampleStep({
       style={[
         styles.exampleStep,
         {
-          backgroundColor: isResult
-            ? accentColor + "0e"
-            : colors.bgCard,
+          backgroundColor: isResult ? accentColor + "0e" : colors.bgCard,
           borderColor: isResult ? accentColor + "40" : colors.border,
         },
       ]}

@@ -3,21 +3,36 @@
     "name": "Mental Gym",
     "slug": "mental-gym",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "backgroundColor": "#0A0A0F"
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.yourname.mentalgym"
+      "bundleIdentifier": "com.mentalgym.app",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon-fg.png",
         "backgroundColor": "#0A0A0F"
       },
-      "package": "com.yourname.mentalgym"
+      "package": "com.mentalgym.app",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       [
@@ -27,9 +42,21 @@
           "color": "#0A0A0F"
         }
       ],
-      "expo-font",
-      "expo-router"
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Mental Gym uses photos to attach them to your exercise notes.",
+          "cameraPermission": "Mental Gym uses the camera to capture photos for your notes."
+        }
+      ],
+      "expo-font"
     ],
-    "scheme": "mentalgym"
+    "scheme": "mentalgym",
+    "extra": {
+      "eas": {
+        "projectId": "76c6898a-1275-41dd-8554-b8ac8fa54381"
+      }
+    },
+    "owner": "miszu"
   }
 }

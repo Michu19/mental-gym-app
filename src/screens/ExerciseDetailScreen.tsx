@@ -171,7 +171,10 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
           activeOpacity={0.75}
           style={[
             styles.readMoreBtn,
-            { backgroundColor: accentColor + "12", borderColor: accentColor + "40" },
+            {
+              backgroundColor: accentColor + "12",
+              borderColor: accentColor + "40",
+            },
           ]}
         >
           <Text style={[styles.readMoreText, { color: accentColor }]}>

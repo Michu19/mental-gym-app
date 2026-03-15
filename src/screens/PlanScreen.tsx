@@ -28,7 +28,9 @@ export function PlanScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const activePlan = plans.find((p) => p.id === activePlanId);
   const activePlanName =
-    activePlan?.id === "default" ? t.plan.defaultPlan : (activePlan?.name ?? t.plan.defaultPlan);
+    activePlan?.id === "default"
+      ? t.plan.defaultPlan
+      : (activePlan?.name ?? t.plan.defaultPlan);
   const styles = makeStyles(colors);
 
   return (
