@@ -26,8 +26,9 @@ export function PlanScreen({ navigation }: Props) {
   const { colors, categoryColors } = useTheme();
   const { activeDays, plans, activePlanId } = usePlan();
   const { t } = useTranslation();
+  const activePlan = plans.find((p) => p.id === activePlanId);
   const activePlanName =
-    plans.find((p) => p.id === activePlanId)?.name ?? t.plan.defaultPlan;
+    activePlan?.id === "default" ? t.plan.defaultPlan : (activePlan?.name ?? t.plan.defaultPlan);
   const styles = makeStyles(colors);
 
   return (
@@ -67,7 +68,8 @@ export function PlanScreen({ navigation }: Props) {
             ]}
           >
             <Text style={[styles.activePlanText, { color: colors.critical }]}>
-              {t.plan.activeLabel}{activePlanName}
+              {t.plan.activeLabel}
+              {activePlanName}
             </Text>
           </View>
           <TouchableOpacity
@@ -195,7 +197,9 @@ export function PlanScreen({ navigation }: Props) {
                     ]}
                   />
                   <Text style={styles.exerciseEmoji}>{ex.emoji}</Text>
-                  <Text style={styles.exerciseName}>{t.exercises[ex.id].name}</Text>
+                  <Text style={styles.exerciseName}>
+                    {t.exercises[ex.id].name}
+                  </Text>
                   <Text style={styles.exerciseTime}>
                     {ex.timeMin}
                     {ex.timeMin !== ex.timeMax ? `–${ex.timeMax}` : ""} min

@@ -17,6 +17,7 @@ import { PlanScreen } from "../screens/PlanScreen";
 import { LibraryScreen } from "../screens/LibraryScreen";
 import { StatsScreen } from "../screens/StatsScreen";
 import { ExerciseDetailScreen } from "../screens/ExerciseDetailScreen";
+import { ExerciseExpandedScreen } from "../screens/ExerciseExpandedScreen";
 import { PlanManagerScreen } from "../screens/PlanManagerScreen";
 import { PlanEditorScreen } from "../screens/PlanEditorScreen";
 import { useTheme } from "../theme/ThemeContext";
@@ -29,6 +30,7 @@ export type RootStackParamList = {
     dateStr?: string;
     showToggle?: boolean;
   };
+  ExerciseExpanded: { exerciseId: string };
   PlanManager: undefined;
   PlanEditor: { planId?: string };
 };
@@ -122,6 +124,11 @@ export function AppNavigator() {
         <Stack.Screen
           name="ExerciseDetail"
           component={ExerciseDetailScreen}
+          options={{ presentation: "card" }}
+        />
+        <Stack.Screen
+          name="ExerciseExpanded"
+          component={ExerciseExpandedScreen}
           options={{ presentation: "card" }}
         />
         <Stack.Screen name="PlanManager" component={PlanManagerScreen} />

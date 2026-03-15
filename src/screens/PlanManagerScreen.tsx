@@ -24,12 +24,14 @@ export function PlanManagerScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { plans, activePlanId, switchPlan, deletePlan } = usePlan();
   const styles = makeStyles(colors);
+  const getPlanName = (plan: WeekPlanSet) =>
+    plan.id === "default" ? t.plan.defaultPlan : plan.name;
 
   const handleActivate = (plan: WeekPlanSet) => {
     if (plan.id === activePlanId) return;
     Alert.alert(
       t.planManager.activateTitle,
-      interpolate(t.planManager.activateMsg, { name: plan.name }),
+      interpolate(t.planManager.activateMsg, { name: getPlanName(plan) }),
       [
         { text: t.planManager.cancel, style: "cancel" },
         { text: t.planManager.activate, onPress: () => switchPlan(plan.id) },
@@ -40,7 +42,7 @@ export function PlanManagerScreen({ navigation }: Props) {
   const handleDelete = (plan: WeekPlanSet) => {
     Alert.alert(
       t.planManager.deleteTitle,
-      interpolate(t.planManager.deleteMsg, { name: plan.name }),
+      interpolate(t.planManager.deleteMsg, { name: getPlanName(plan) }),
       [
         { text: t.planManager.cancel, style: "cancel" },
         {
@@ -112,7 +114,7 @@ export function PlanManagerScreen({ navigation }: Props) {
               <View style={styles.cardHeaderRow}>
                 <View style={{ flex: 1, gap: 2 }}>
                   <View style={styles.titleRow}>
-                    <Text style={styles.planName}>{plan.name}</Text>
+                    <Text style={styles.planName}>{getPlanName(plan)}</Text>
                     {isActive && (
                       <View
                         style={[
@@ -148,7 +150,9 @@ export function PlanManagerScreen({ navigation }: Props) {
                       { backgroundColor: colors.bgElevated },
                     ]}
                   >
-                    <Text style={styles.dayChipLabel}>{t.planEditor.daysShort[i]}</Text>
+                    <Text style={styles.dayChipLabel}>
+                      {t.planEditor.daysShort[i]}
+                    </Text>
                     <Text style={styles.dayChipCount}>
                       {d.exerciseIds.length}
                     </Text>

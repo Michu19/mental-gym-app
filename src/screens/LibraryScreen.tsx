@@ -85,7 +85,9 @@ export function LibraryScreen({ navigation }: Props) {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.count}>{interpolate(t.library.count, { count: filtered.length })}</Text>
+        <Text style={styles.count}>
+          {interpolate(t.library.count, { count: filtered.length })}
+        </Text>
         {filtered.map((ex) => (
           <ExerciseCard
             key={ex.id}

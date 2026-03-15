@@ -174,8 +174,14 @@ export function PlanEditorScreen({ route, navigation }: Props) {
 
       {/* Day subheader */}
       <View style={styles.dayBar}>
-        <Text style={styles.dayBarTitle}>{t.planEditor.daysFull[selectedDay]}</Text>
-        <Text style={styles.dayBarCount}>{interpolate(t.planEditor.exerciseCount, { count: currentIds.length })}</Text>
+        <Text style={styles.dayBarTitle}>
+          {t.planEditor.daysFull[selectedDay]}
+        </Text>
+        <Text style={styles.dayBarCount}>
+          {interpolate(t.planEditor.exerciseCount, {
+            count: currentIds.length,
+          })}
+        </Text>
       </View>
 
       <ScrollView
@@ -274,9 +280,7 @@ export function PlanEditorScreen({ route, navigation }: Props) {
               { backgroundColor: colors.bgCard, borderColor: colors.border },
             ]}
           >
-            <Text style={styles.limitNoteText}>
-              {t.planEditor.limitNote}
-            </Text>
+            <Text style={styles.limitNoteText}>{t.planEditor.limitNote}</Text>
           </View>
         )}
       </ScrollView>

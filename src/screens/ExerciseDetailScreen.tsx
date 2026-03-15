@@ -121,7 +121,9 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
           style={styles.backBtn}
           activeOpacity={0.7}
         >
-          <Text style={[styles.backText, { color: accentColor }]}>{t.exercise.back}</Text>
+          <Text style={[styles.backText, { color: accentColor }]}>
+            {t.exercise.back}
+          </Text>
         </TouchableOpacity>
         <Text style={styles.navTitle}>#{ex.id}</Text>
       </View>
@@ -147,7 +149,10 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
           <Text style={styles.heroEmoji}>{ex.emoji}</Text>
           <Text style={styles.heroName}>{t.exercises[ex.id].name}</Text>
           <View style={styles.heroBadges}>
-            <CategoryBadge category={ex.category} label={t.categories[ex.category]} />
+            <CategoryBadge
+              category={ex.category}
+              label={t.categories[ex.category]}
+            />
             <View style={styles.timePillLarge}>
               <Text style={styles.timePillText}>
                 ⏱ {formatTime(ex.timeMin, ex.timeMax)}
@@ -158,6 +163,22 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
 
         {/* Description */}
         <Text style={styles.description}>{t.exercises[ex.id].description}</Text>
+
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("ExerciseExpanded", { exerciseId })
+          }
+          activeOpacity={0.75}
+          style={[
+            styles.readMoreBtn,
+            { backgroundColor: accentColor + "12", borderColor: accentColor + "40" },
+          ]}
+        >
+          <Text style={[styles.readMoreText, { color: accentColor }]}>
+            📖 {t.exercise.readMore}
+          </Text>
+          <Text style={[styles.readMoreArrow, { color: accentColor }]}>→</Text>
+        </TouchableOpacity>
 
         <Divider />
 
@@ -206,7 +227,9 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                   activeOpacity={0.75}
                   style={styles.timerBtnSecondary}
                 >
-                  <Text style={styles.timerBtnSecondaryText}>{t.exercise.reset}</Text>
+                  <Text style={styles.timerBtnSecondaryText}>
+                    {t.exercise.reset}
+                  </Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -284,7 +307,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                   },
                 ]}
                 multiline
-                placeholder="Zapisz przemyślenia..."
+                placeholder={t.exercise.notesPlaceholder}
                 placeholderTextColor={colors.textMuted}
                 value={draftNote}
                 onChangeText={setDraftNote}
@@ -572,6 +595,24 @@ function makeStyles(colors: ColorScheme) {
       fontSize: FontSize.md,
       color: colors.textSecondary,
       lineHeight: 24,
+    },
+
+    readMoreBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderRadius: Radius.lg,
+      borderWidth: 1,
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.md,
+    },
+    readMoreText: {
+      fontSize: FontSize.sm,
+      fontWeight: "600",
+    },
+    readMoreArrow: {
+      fontSize: FontSize.md,
+      fontWeight: "300",
     },
 
     timerSection: { gap: Spacing.md },

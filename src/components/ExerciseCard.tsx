@@ -124,7 +124,9 @@ export function ExerciseCard({
       {!onPress && expanded && (
         <View style={styles.body}>
           <Divider style={styles.bodyDivider} />
-          <Text style={styles.description}>{t.exercises[ex.id].description}</Text>
+          <Text style={styles.description}>
+            {t.exercises[ex.id].description}
+          </Text>
 
           <View style={[styles.promptBox, { borderLeftColor: accentColor }]}>
             <SectionLabel text={t.card.prompt} color={accentColor} />

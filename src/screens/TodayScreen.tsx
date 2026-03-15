@@ -96,7 +96,9 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
           </Text>
         </TouchableOpacity>
         <Text style={[styles.weekNavLabel, { color: colors.textMuted }]}>
-          {weekOffset === 0 ? t.gym.currentWeek : formatWeekLabel(weekOffset, t.days.locale)}
+          {weekOffset === 0
+            ? t.gym.currentWeek
+            : formatWeekLabel(weekOffset, t.days.locale)}
         </Text>
         <TouchableOpacity
           onPress={() => setWeekOffset((o) => o + 1)}

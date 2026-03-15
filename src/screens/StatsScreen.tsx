@@ -14,7 +14,6 @@ import { useProgressContext as useProgress } from "../hooks/ProgressContext";
 import { useTheme } from "../theme/ThemeContext";
 import { useTranslation } from "../i18n/LanguageContext";
 
-
 function getMonday(offsetWeeks: number): Date {
   const now = new Date();
   const dayOfWeek = (now.getDay() + 6) % 7; // Mon=0

@@ -10,6 +10,7 @@ import {
 import Svg, { Circle } from "react-native-svg";
 import { Spacing, Radius, FontSize } from "../theme";
 import { useTheme } from "../theme/ThemeContext";
+import { useTranslation } from "../i18n/LanguageContext";
 import type { Category } from "../data/exercises";
 
 // ─── CategoryBadge ────────────────────────────────────────────────────────
@@ -69,6 +70,7 @@ interface CheckButtonProps {
 
 export function CheckButton({ done, onPress, style }: CheckButtonProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -88,7 +90,7 @@ export function CheckButton({ done, onPress, style }: CheckButtonProps) {
           { color: done ? colors.success : colors.textMuted },
         ]}
       >
-        {done ? "✓  Ukończono" : "Oznacz jako ukończone"}
+        {done ? t.exercise.checkDone : t.exercise.checkMark}
       </Text>
     </TouchableOpacity>
   );
