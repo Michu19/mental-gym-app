@@ -288,7 +288,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                   },
                 ]}
                 multiline
-                placeholder="Zapisz przemyślenia po ćwiczeniu…"
+                placeholder="Zapisz przemyślenia..."
                 placeholderTextColor={colors.textMuted}
                 value={draftNote}
                 onChangeText={setDraftNote}
@@ -335,8 +335,8 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
             >
               <Text style={styles.noteEmptyText}>
                 {dateStr
-                  ? "Brak notatek z tego dnia \u2014 dodaj pierwsz\u0105 po ćwiczeniu \ud83d\udcdd"
-                  : "Brak notatek \u2014 dodaj pierwsz\u0105 po ćwiczeniu \ud83d\udcdd"}
+                  ? "Brak notatek z tego dnia \u2014 dodaj pierwsz\u0105 \ud83d\udcdd"
+                  : "Brak notatek \u2014 dodaj pierwsz\u0105 \ud83d\udcdd"}
               </Text>
             </View>
           ) : (
