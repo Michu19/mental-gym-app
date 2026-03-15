@@ -209,11 +209,11 @@ export function PlanScreen({ navigation }: Props) {
 
               {/* Category chips */}
               <View style={styles.catChips}>
-                {exercises.map((ex) => {
-                  const color = categoryColors[ex.category];
+                {[...new Set(exercises.map((ex) => ex.category))].map((cat) => {
+                  const color = categoryColors[cat];
                   return (
                     <View
-                      key={ex.id}
+                      key={cat}
                       style={[
                         styles.catChip,
                         {
@@ -223,7 +223,7 @@ export function PlanScreen({ navigation }: Props) {
                       ]}
                     >
                       <Text style={[styles.catChipText, { color }]}>
-                        {t.categories[ex.category]}
+                        {t.categories[cat]}
                       </Text>
                     </View>
                   );
