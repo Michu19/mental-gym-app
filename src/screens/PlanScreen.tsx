@@ -13,6 +13,7 @@ import { FontSize, Spacing, Radius, type ColorScheme } from "../theme";
 import { EXERCISES_BY_ID, getTodayIndex } from "../data/exercises";
 import { useTheme } from "../theme/ThemeContext";
 import { usePlan } from "../hooks/PlanContext";
+import { useTranslation } from "../i18n/LanguageContext";
 
 const todayIdx = getTodayIndex();
 
@@ -24,8 +25,9 @@ export function PlanScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { colors, categoryColors } = useTheme();
   const { activeDays, plans, activePlanId } = usePlan();
+  const { t } = useTranslation();
   const activePlanName =
-    plans.find((p) => p.id === activePlanId)?.name ?? "Plan domyślny";
+    plans.find((p) => p.id === activePlanId)?.name ?? t.plan.defaultPlan;
   const styles = makeStyles(colors);
 
   return (
@@ -34,7 +36,7 @@ export function PlanScreen({ navigation }: Props) {
         <View style={styles.headerTop}>
           <View>
             <Text style={styles.subtitle}>MENTAL GYM</Text>
-            <Text style={styles.title}>Plan tygodniowy</Text>
+            <Text style={styles.title}>{t.plan.title}</Text>
           </View>
           <TouchableOpacity
             onPress={() => navigation?.navigate("PlanManager")}
@@ -50,7 +52,7 @@ export function PlanScreen({ navigation }: Props) {
             <Text
               style={[styles.manageBtnText, { color: colors.textSecondary }]}
             >
-              ⚙ Plany
+              {t.plan.manage}
             </Text>
           </TouchableOpacity>
         </View>
@@ -65,7 +67,7 @@ export function PlanScreen({ navigation }: Props) {
             ]}
           >
             <Text style={[styles.activePlanText, { color: colors.critical }]}>
-              Aktywny: {activePlanName}
+              {t.plan.activeLabel}{activePlanName}
             </Text>
           </View>
           <TouchableOpacity
@@ -81,7 +83,7 @@ export function PlanScreen({ navigation }: Props) {
             <Text
               style={[styles.editPlanBtnText, { color: colors.textSecondary }]}
             >
-              ✎ Edytuj
+              {t.plan.edit}
             </Text>
           </TouchableOpacity>
         </View>
@@ -94,18 +96,15 @@ export function PlanScreen({ navigation }: Props) {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.intro}>
-          Każdy dzień łączy 3 ćwiczenia z różnych kategorii. Rotacja zapewnia
-          trening kreatywności, krytycznego myślenia i uważności.
-        </Text>
+        <Text style={styles.intro}>{t.plan.intro}</Text>
 
         {/* Legend */}
         <View style={styles.legend}>
           {(
             [
-              ["kreatywnosc", "Kreatywność"],
-              ["krytyczne", "Krytyczne myślenie"],
-              ["mindfulness", "Mindfulness"],
+              ["kreatywnosc", t.plan.categoryCreativity],
+              ["krytyczne", t.plan.categoryCritical],
+              ["mindfulness", t.plan.categoryMindfulness],
             ] as const
           ).map(([key, label]) => (
             <View key={key} style={styles.legendRow}>
@@ -160,7 +159,7 @@ export function PlanScreen({ navigation }: Props) {
                         isToday && { color: colors.white },
                       ]}
                     >
-                      {dayPlan.shortDay.toUpperCase()}
+                      {t.planEditor.daysShort[dayIdx].toUpperCase()}
                     </Text>
                   </View>
                   {isToday && (
@@ -179,7 +178,7 @@ export function PlanScreen({ navigation }: Props) {
                           { color: colors.critical },
                         ]}
                       >
-                        DZIŚ
+                        {t.plan.today}
                       </Text>
                     </View>
                   )}
@@ -196,7 +195,7 @@ export function PlanScreen({ navigation }: Props) {
                     ]}
                   />
                   <Text style={styles.exerciseEmoji}>{ex.emoji}</Text>
-                  <Text style={styles.exerciseName}>{ex.name}</Text>
+                  <Text style={styles.exerciseName}>{t.exercises[ex.id].name}</Text>
                   <Text style={styles.exerciseTime}>
                     {ex.timeMin}
                     {ex.timeMin !== ex.timeMax ? `–${ex.timeMax}` : ""} min
@@ -220,7 +219,7 @@ export function PlanScreen({ navigation }: Props) {
                       ]}
                     >
                       <Text style={[styles.catChipText, { color }]}>
-                        {ex.categoryLabel}
+                        {t.categories[ex.category]}
                       </Text>
                     </View>
                   );

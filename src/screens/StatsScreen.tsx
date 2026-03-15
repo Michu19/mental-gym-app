@@ -12,8 +12,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FontSize, Spacing, Radius, type ColorScheme } from "../theme";
 import { useProgressContext as useProgress } from "../hooks/ProgressContext";
 import { useTheme } from "../theme/ThemeContext";
+import { useTranslation } from "../i18n/LanguageContext";
 
-const SHORT_DAYS = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"];
 
 function getMonday(offsetWeeks: number): Date {
   const now = new Date();
@@ -33,12 +33,12 @@ function getWeekDates(offsetWeeks: number): string[] {
   });
 }
 
-function formatWeekLabel(offsetWeeks: number): string {
+function formatWeekLabel(offsetWeeks: number, locale: string): string {
   const monday = getMonday(offsetWeeks);
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
   const fmt = (d: Date) =>
-    d.toLocaleDateString("pl-PL", { day: "numeric", month: "short" });
+    d.toLocaleDateString(locale, { day: "numeric", month: "short" });
   const year = sunday.getFullYear();
   return `${fmt(monday)} – ${fmt(sunday)} ${year}`;
 }
@@ -47,6 +47,7 @@ export function StatsScreen() {
   const insets = useSafeAreaInsets();
   const { streak, completedCount, completedByDate } = useProgress();
   const { isDark, colors, toggleTheme } = useTheme();
+  const { t, toggleLanguage } = useTranslation();
   const [weekOffset, setWeekOffset] = useState(0);
 
   const weekDates = getWeekDates(weekOffset);
@@ -66,7 +67,7 @@ export function StatsScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text style={styles.subtitle}>MENTAL GYM</Text>
-        <Text style={styles.title}>Statystyki</Text>
+        <Text style={styles.title}>{t.stats.title}</Text>
       </View>
 
       <ScrollView
@@ -81,17 +82,17 @@ export function StatsScreen() {
           <Text style={styles.streakEmoji}>🔥</Text>
           <Text style={styles.streakNumber}>{streak}</Text>
           <Text style={styles.streakLabel}>
-            {streak === 1 ? "dzień z rzędu" : "dni z rzędu"}
+            {streak === 1 ? t.stats.streakOne : t.stats.streakMany}
           </Text>
         </View>
 
         {/* Section heading */}
-        <Text style={styles.sectionHeading}>Ukończone zadania</Text>
+        <Text style={styles.sectionHeading}>{t.stats.completed}</Text>
 
         {/* Today + week total */}
         <View style={styles.statsRow}>
           <View style={[styles.card, styles.statCard]}>
-            <Text style={styles.cardTitle}>Dziś</Text>
+            <Text style={styles.cardTitle}>{t.stats.today}</Text>
             <Text
               style={[styles.weekStatNumber, { color: colors.textPrimary }]}
             >
@@ -100,7 +101,7 @@ export function StatsScreen() {
           </View>
           <View style={[styles.card, styles.statCard]}>
             <Text style={styles.cardTitle} numberOfLines={1}>
-              {weekOffset === 0 ? "Ten tydzień" : "Tydzień"}
+              {weekOffset === 0 ? t.stats.thisWeek : t.stats.week}
             </Text>
             <Text style={[styles.weekStatNumber, { color: colors.success }]}>
               {weekTotal}
@@ -110,7 +111,7 @@ export function StatsScreen() {
 
         {/* All time */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Łącznie wszystkie tygodnie</Text>
+          <Text style={styles.cardTitle}>{t.stats.total}</Text>
           <Text
             style={[styles.weekStatNumber, { color: colors.textSecondary }]}
           >
@@ -133,7 +134,7 @@ export function StatsScreen() {
               </Text>
             </TouchableOpacity>
             <Text style={styles.weekNavLabel}>
-              {formatWeekLabel(weekOffset)}
+              {formatWeekLabel(weekOffset, t.days.locale)}
             </Text>
             <TouchableOpacity
               onPress={() => setWeekOffset((o) => o + 1)}
@@ -155,7 +156,7 @@ export function StatsScreen() {
               const isFuture = date > todayDate;
               return (
                 <View key={date} style={styles.heatmapCol}>
-                  <Text style={styles.heatmapDayLabel}>{SHORT_DAYS[i]}</Text>
+                  <Text style={styles.heatmapDayLabel}>{t.days.short[i]}</Text>
                   <View
                     style={[
                       styles.heatmapBox,
@@ -189,8 +190,18 @@ export function StatsScreen() {
         >
           <Text style={styles.themeBtnIcon}>{isDark ? "☀️" : "🌙"}</Text>
           <Text style={styles.themeBtnText}>
-            {isDark ? "Przełącz na jasny motyw" : "Przełącz na ciemny motyw"}
+            {isDark ? t.stats.lightTheme : t.stats.darkTheme}
           </Text>
+        </TouchableOpacity>
+
+        {/* Language toggle */}
+        <TouchableOpacity
+          style={styles.themeBtn}
+          onPress={toggleLanguage}
+          activeOpacity={0.75}
+        >
+          <Text style={styles.themeBtnIcon}>🌐</Text>
+          <Text style={styles.themeBtnText}>{t.language.switchTo}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

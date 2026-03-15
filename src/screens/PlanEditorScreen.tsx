@@ -14,17 +14,7 @@ import { useTheme } from "../theme/ThemeContext";
 import { usePlan, DEFAULT_PLAN, type WeekPlanSet } from "../hooks/PlanContext";
 import { EXERCISES, EXERCISES_BY_ID } from "../data/exercises";
 import { FontSize, Spacing, Radius, type ColorScheme } from "../theme";
-
-const DAY_SHORT = ["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Nd"];
-const DAY_FULL = [
-  "Poniedziałek",
-  "Wtorek",
-  "Środa",
-  "Czwartek",
-  "Piątek",
-  "Sobota",
-  "Niedziela",
-];
+import { useTranslation, interpolate } from "../i18n/LanguageContext";
 
 interface Props {
   route: { params?: { planId?: string } };
@@ -34,6 +24,7 @@ interface Props {
 export function PlanEditorScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { colors, categoryColors } = useTheme();
+  const { t } = useTranslation();
   const { plans, savePlan } = usePlan();
   const styles = makeStyles(colors);
 
@@ -65,25 +56,18 @@ export function PlanEditorScreen({ route, navigation }: Props) {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert("Brak nazwy", "Podaj nazwę planu.");
+      Alert.alert(t.planEditor.noNameTitle, t.planEditor.noNameMsg);
       return;
     }
     if (days.some((d) => d.length === 0)) {
-      Alert.alert(
-        "Pusty dzień",
-        "Każdy dzień musi mieć co najmniej jedno ćwiczenie.",
-      );
+      Alert.alert(t.planEditor.emptyDayTitle, t.planEditor.emptyDayMsg);
       return;
     }
     const plan: WeekPlanSet = {
       id: planId ?? Date.now().toString(),
       name: name.trim(),
       createdAt: existing?.createdAt ?? new Date().toISOString(),
-      days: days.map((ids, i) => ({
-        day: DAY_FULL[i],
-        shortDay: DAY_SHORT[i],
-        exerciseIds: ids,
-      })),
+      days: days.map((ids) => ({ exerciseIds: ids })),
     };
     await savePlan(plan);
     navigation.goBack();
@@ -99,11 +83,11 @@ export function PlanEditorScreen({ route, navigation }: Props) {
           style={styles.navSide}
         >
           <Text style={[styles.navAction, { color: colors.critical }]}>
-            ‹ Anuluj
+            {t.planEditor.cancelNav}
           </Text>
         </TouchableOpacity>
         <Text style={styles.navTitle}>
-          {planId ? "Edytuj plan" : "Nowy plan"}
+          {planId ? t.planEditor.editTitle : t.planEditor.newTitle}
         </Text>
         <TouchableOpacity
           onPress={handleSave}
@@ -116,7 +100,7 @@ export function PlanEditorScreen({ route, navigation }: Props) {
               { color: colors.critical, textAlign: "right", fontWeight: "700" },
             ]}
           >
-            Zapisz
+            {t.planEditor.save}
           </Text>
         </TouchableOpacity>
       </View>
@@ -128,7 +112,7 @@ export function PlanEditorScreen({ route, navigation }: Props) {
             styles.nameInput,
             { borderColor: name.trim() ? colors.border : colors.borderStrong },
           ]}
-          placeholder="Nazwa planu…"
+          placeholder={t.planEditor.namePlaceholder}
           placeholderTextColor={colors.textMuted}
           value={name}
           onChangeText={setName}
@@ -143,7 +127,7 @@ export function PlanEditorScreen({ route, navigation }: Props) {
         contentContainerStyle={styles.dayScroll}
         style={styles.dayScrollWrap}
       >
-        {DAY_SHORT.map((d, i) => {
+        {t.planEditor.daysShort.map((d, i) => {
           const isSelected = i === selectedDay;
           const isEmpty = days[i].length === 0;
           return (
@@ -167,7 +151,7 @@ export function PlanEditorScreen({ route, navigation }: Props) {
                   isSelected && { color: colors.textPrimary },
                 ]}
               >
-                {d}
+                {t.planEditor.daysShort[i]}
               </Text>
               <Text
                 style={[
@@ -190,8 +174,8 @@ export function PlanEditorScreen({ route, navigation }: Props) {
 
       {/* Day subheader */}
       <View style={styles.dayBar}>
-        <Text style={styles.dayBarTitle}>{DAY_FULL[selectedDay]}</Text>
-        <Text style={styles.dayBarCount}>{currentIds.length} / 5 ćwiczeń</Text>
+        <Text style={styles.dayBarTitle}>{t.planEditor.daysFull[selectedDay]}</Text>
+        <Text style={styles.dayBarCount}>{interpolate(t.planEditor.exerciseCount, { count: currentIds.length })}</Text>
       </View>
 
       <ScrollView
@@ -206,7 +190,7 @@ export function PlanEditorScreen({ route, navigation }: Props) {
         {/* Selected exercises */}
         {currentIds.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>WYBRANE</Text>
+            <Text style={styles.sectionLabel}>{t.planEditor.selected}</Text>
             {currentIds.map((id) => {
               const ex = EXERCISES_BY_ID[id];
               const color = categoryColors[ex.category];
@@ -220,9 +204,9 @@ export function PlanEditorScreen({ route, navigation }: Props) {
                 >
                   <Text style={styles.exEmoji}>{ex.emoji}</Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.exName}>{ex.name}</Text>
+                    <Text style={styles.exName}>{t.exercises[ex.id].name}</Text>
                     <Text style={styles.exMeta}>
-                      {ex.categoryLabel} · {ex.timeMin}
+                      {t.categories[ex.category]} · {ex.timeMin}
                       {ex.timeMin !== ex.timeMax ? `–${ex.timeMax}` : ""} min
                     </Text>
                   </View>
@@ -253,7 +237,7 @@ export function PlanEditorScreen({ route, navigation }: Props) {
         {/* Available exercises */}
         {currentIds.length < 5 && available.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>DOSTĘPNE — DOTKNIJ BY DODAĆ</Text>
+            <Text style={styles.sectionLabel}>{t.planEditor.available}</Text>
             {available.map((ex) => {
               const color = categoryColors[ex.category];
               return (
@@ -268,9 +252,9 @@ export function PlanEditorScreen({ route, navigation }: Props) {
                 >
                   <Text style={styles.exEmoji}>{ex.emoji}</Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.exName}>{ex.name}</Text>
+                    <Text style={styles.exName}>{t.exercises[ex.id].name}</Text>
                     <Text style={styles.exMeta}>
-                      {ex.categoryLabel} · {ex.timeMin}
+                      {t.categories[ex.category]} · {ex.timeMin}
                       {ex.timeMin !== ex.timeMax ? `–${ex.timeMax}` : ""} min
                     </Text>
                   </View>
@@ -291,7 +275,7 @@ export function PlanEditorScreen({ route, navigation }: Props) {
             ]}
           >
             <Text style={styles.limitNoteText}>
-              Osiągnięto limit 5 ćwiczeń na ten dzień.
+              {t.planEditor.limitNote}
             </Text>
           </View>
         )}

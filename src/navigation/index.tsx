@@ -20,6 +20,7 @@ import { ExerciseDetailScreen } from "../screens/ExerciseDetailScreen";
 import { PlanManagerScreen } from "../screens/PlanManagerScreen";
 import { PlanEditorScreen } from "../screens/PlanEditorScreen";
 import { useTheme } from "../theme/ThemeContext";
+import { useTranslation } from "../i18n/LanguageContext";
 
 export type RootStackParamList = {
   Tabs: undefined;
@@ -44,6 +45,7 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 function TabNavigator() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
@@ -77,22 +79,22 @@ function TabNavigator() {
       <Tab.Screen
         name="Gym"
         component={TodayScreen}
-        options={{ tabBarLabel: "Gym" }}
+        options={{ tabBarLabel: t.nav.gym }}
       />
       <Tab.Screen
         name="Plan"
         component={PlanScreen}
-        options={{ tabBarLabel: "Plan" }}
+        options={{ tabBarLabel: t.nav.plan }}
       />
       <Tab.Screen
         name="Library"
         component={LibraryScreen}
-        options={{ tabBarLabel: "Biblioteka" }}
+        options={{ tabBarLabel: t.nav.library }}
       />
       <Tab.Screen
         name="Stats"
         component={StatsScreen}
-        options={{ tabBarLabel: "Statystyki" }}
+        options={{ tabBarLabel: t.nav.stats }}
       />
     </Tab.Navigator>
   );

@@ -9,6 +9,7 @@ import { AppNavigator } from "./src/navigation";
 import { ThemeProvider, useTheme } from "./src/theme/ThemeContext";
 import { PlanProvider } from "./src/hooks/PlanContext";
 import { ProgressProvider } from "./src/hooks/ProgressContext";
+import { LanguageProvider } from "./src/i18n/LanguageContext";
 
 function AppContent() {
   const { isDark } = useTheme();
@@ -22,17 +23,19 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <PlanProvider>
-        <ProgressProvider>
-          <GestureHandlerRootView style={styles.root}>
-            <SafeAreaProvider>
-              <AppContent />
-            </SafeAreaProvider>
-          </GestureHandlerRootView>
-        </ProgressProvider>
-      </PlanProvider>
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <PlanProvider>
+          <ProgressProvider>
+            <GestureHandlerRootView style={styles.root}>
+              <SafeAreaProvider>
+                <AppContent />
+              </SafeAreaProvider>
+            </GestureHandlerRootView>
+          </ProgressProvider>
+        </PlanProvider>
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }
 

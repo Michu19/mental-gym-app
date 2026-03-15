@@ -20,6 +20,7 @@ import type { Exercise } from "../data/exercises";
 import { formatTime } from "../data/exercises";
 import { useTheme } from "../theme/ThemeContext";
 import { useNoteHistory } from "../hooks/useProgress";
+import { useTranslation, interpolate } from "../i18n/LanguageContext";
 
 interface Props {
   exercise: Exercise;
@@ -43,6 +44,7 @@ export function ExerciseCard({
   const { colors, categoryColors } = useTheme();
   const accentColor = categoryColors[ex.category];
   const { notes, addNote } = useNoteHistory(ex.id);
+  const { t } = useTranslation();
   const styles = makeStyles(colors);
 
   if (compact) {
@@ -54,9 +56,9 @@ export function ExerciseCard({
       >
         <Text style={styles.compactEmoji}>{ex.emoji}</Text>
         <View style={styles.compactBody}>
-          <Text style={styles.compactName}>{ex.name}</Text>
+          <Text style={styles.compactName}>{t.exercises[ex.id].name}</Text>
           <Text style={styles.compactMeta}>
-            {formatTime(ex.timeMin, ex.timeMax)} · {ex.categoryLabel}
+            {formatTime(ex.timeMin, ex.timeMax)} · {t.categories[ex.category]}
           </Text>
         </View>
         <Text style={styles.arrow}>›</Text>
@@ -93,14 +95,14 @@ export function ExerciseCard({
           <View style={styles.headerRow}>
             <Text style={styles.indexText}>{index + 1}.</Text>
             <Text style={[styles.name, done && styles.nameDone]}>
-              {ex.name}
+              {t.exercises[ex.id].name}
             </Text>
           </View>
           <View style={styles.metaRow}>
             <TimePill text={formatTime(ex.timeMin, ex.timeMax)} />
             <CategoryBadge
               category={ex.category}
-              label={ex.categoryLabel}
+              label={t.categories[ex.category]}
               small
             />
           </View>
@@ -122,18 +124,18 @@ export function ExerciseCard({
       {!onPress && expanded && (
         <View style={styles.body}>
           <Divider style={styles.bodyDivider} />
-          <Text style={styles.description}>{ex.description}</Text>
+          <Text style={styles.description}>{t.exercises[ex.id].description}</Text>
 
           <View style={[styles.promptBox, { borderLeftColor: accentColor }]}>
-            <SectionLabel text="Prompt" color={accentColor} />
-            <Text style={styles.promptText}>{ex.prompt}</Text>
+            <SectionLabel text={t.card.prompt} color={accentColor} />
+            <Text style={styles.promptText}>{t.exercises[ex.id].prompt}</Text>
           </View>
 
-          <Text style={styles.tip}>💬 {ex.tip}</Text>
+          <Text style={styles.tip}>💬 {t.exercises[ex.id].tip}</Text>
 
           {/* Quick note */}
           <View style={styles.noteWrap}>
-            <SectionLabel text="Szybka notatka" color={accentColor} />
+            <SectionLabel text={t.card.quickNote} color={accentColor} />
             <View style={styles.noteRow}>
               <TextInput
                 style={[
@@ -143,7 +145,7 @@ export function ExerciseCard({
                       draft.length > 0 ? accentColor + "80" : colors.border,
                   },
                 ]}
-                placeholder="Zapisz przemyślenie…"
+                placeholder={t.card.notePlaceholder}
                 placeholderTextColor={colors.textMuted}
                 value={draft}
                 onChangeText={setDraft}
@@ -181,13 +183,15 @@ export function ExerciseCard({
             </View>
             {notes.length > 0 && (
               <Text style={styles.noteCount}>
-                {notes.length}{" "}
-                {notes.length === 1
-                  ? "notatka"
-                  : notes.length < 5
-                    ? "notatki"
-                    : "notatek"}{" "}
-                — dostępne w szczegółach
+                {interpolate(
+                  notes.length === 1
+                    ? t.card.noteCount.one
+                    : notes.length < 5
+                      ? t.card.noteCount.few
+                      : t.card.noteCount.many,
+                  { count: notes.length },
+                )}{" "}
+                {t.card.noteDetails}
               </Text>
             )}
           </View>
@@ -203,7 +207,7 @@ export function ExerciseCard({
       {/* Collapsed done indicator */}
       {(!onPress || !expanded) && done && (
         <View style={styles.doneStrip}>
-          <Text style={styles.doneStripText}>✓ Ukończone</Text>
+          <Text style={styles.doneStripText}>{t.card.done}</Text>
         </View>
       )}
 
@@ -214,7 +218,7 @@ export function ExerciseCard({
           activeOpacity={0.7}
           style={styles.quickCheck}
         >
-          <Text style={styles.quickCheckText}>Dotknij by ukończyć →</Text>
+          <Text style={styles.quickCheckText}>{t.card.tapToComplete}</Text>
         </TouchableOpacity>
       )}
     </View>

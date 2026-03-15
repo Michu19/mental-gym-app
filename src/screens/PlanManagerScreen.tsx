@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../theme/ThemeContext";
 import { usePlan, type WeekPlanSet } from "../hooks/PlanContext";
 import { FontSize, Spacing, Radius, type ColorScheme } from "../theme";
+import { useTranslation, interpolate } from "../i18n/LanguageContext";
 
 interface Props {
   navigation: any;
@@ -20,29 +21,30 @@ interface Props {
 export function PlanManagerScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { plans, activePlanId, switchPlan, deletePlan } = usePlan();
   const styles = makeStyles(colors);
 
   const handleActivate = (plan: WeekPlanSet) => {
     if (plan.id === activePlanId) return;
     Alert.alert(
-      "Zmień aktywny plan",
-      `Czy na pewno chcesz aktywować plan „${plan.name}"?\n\nNowy plan zacznie obowiązywać od razu.`,
+      t.planManager.activateTitle,
+      interpolate(t.planManager.activateMsg, { name: plan.name }),
       [
-        { text: "Anuluj", style: "cancel" },
-        { text: "Aktywuj", onPress: () => switchPlan(plan.id) },
+        { text: t.planManager.cancel, style: "cancel" },
+        { text: t.planManager.activate, onPress: () => switchPlan(plan.id) },
       ],
     );
   };
 
   const handleDelete = (plan: WeekPlanSet) => {
     Alert.alert(
-      "Usuń plan",
-      `Czy na pewno chcesz usunąć plan „${plan.name}"?\n\nTej operacji nie można cofnąć.`,
+      t.planManager.deleteTitle,
+      interpolate(t.planManager.deleteMsg, { name: plan.name }),
       [
-        { text: "Anuluj", style: "cancel" },
+        { text: t.planManager.cancel, style: "cancel" },
         {
-          text: "Usuń",
+          text: t.planManager.delete,
           style: "destructive",
           onPress: () => deletePlan(plan.id),
         },
@@ -59,10 +61,10 @@ export function PlanManagerScreen({ navigation }: Props) {
           style={styles.navSide}
         >
           <Text style={[styles.navAction, { color: colors.critical }]}>
-            ‹ Wróć
+            {t.planManager.back}
           </Text>
         </TouchableOpacity>
-        <Text style={styles.navTitle}>Plany treningowe</Text>
+        <Text style={styles.navTitle}>{t.planManager.title}</Text>
         <TouchableOpacity
           onPress={() => navigation.navigate("PlanEditor", {})}
           activeOpacity={0.75}
@@ -74,7 +76,7 @@ export function PlanManagerScreen({ navigation }: Props) {
               { color: colors.critical, textAlign: "right" },
             ]}
           >
-            + Nowy
+            {t.planManager.newPlan}
           </Text>
         </TouchableOpacity>
       </View>
@@ -91,8 +93,8 @@ export function PlanManagerScreen({ navigation }: Props) {
           const isActive = plan.id === activePlanId;
           const isDefault = plan.id === "default";
           const dateLabel = isDefault
-            ? "Wbudowany"
-            : new Date(plan.createdAt).toLocaleDateString("pl-PL", {
+            ? t.planManager.built
+            : new Date(plan.createdAt).toLocaleDateString(t.days.locale, {
                 day: "numeric",
                 month: "short",
                 year: "numeric",
@@ -127,7 +129,7 @@ export function PlanManagerScreen({ navigation }: Props) {
                             { color: colors.critical },
                           ]}
                         >
-                          AKTYWNY
+                          {t.planManager.active}
                         </Text>
                       </View>
                     )}
@@ -146,7 +148,7 @@ export function PlanManagerScreen({ navigation }: Props) {
                       { backgroundColor: colors.bgElevated },
                     ]}
                   >
-                    <Text style={styles.dayChipLabel}>{d.shortDay}</Text>
+                    <Text style={styles.dayChipLabel}>{t.planEditor.daysShort[i]}</Text>
                     <Text style={styles.dayChipCount}>
                       {d.exerciseIds.length}
                     </Text>
@@ -168,7 +170,7 @@ export function PlanManagerScreen({ navigation }: Props) {
                     <Text
                       style={[styles.btnPrimaryText, { color: colors.white }]}
                     >
-                      Aktywuj
+                      {t.planManager.activate}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -187,7 +189,7 @@ export function PlanManagerScreen({ navigation }: Props) {
                         { color: colors.textSecondary },
                       ]}
                     >
-                      Duplikuj
+                      {t.planManager.duplicate}
                     </Text>
                   </TouchableOpacity>
                 ) : (
@@ -208,7 +210,7 @@ export function PlanManagerScreen({ navigation }: Props) {
                           { color: colors.textSecondary },
                         ]}
                       >
-                        Edytuj
+                        {t.planManager.edit}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -225,7 +227,7 @@ export function PlanManagerScreen({ navigation }: Props) {
                           { color: colors.textMuted },
                         ]}
                       >
-                        Usuń
+                        {t.planManager.delete}
                       </Text>
                     </TouchableOpacity>
                   </>

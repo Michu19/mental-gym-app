@@ -18,9 +18,9 @@ import { usePlan } from "../hooks/PlanContext";
 import { ExerciseCard } from "../components/ExerciseCard";
 import { ProgressRing } from "../components/ui";
 import { useTheme } from "../theme/ThemeContext";
+import { useTranslation, interpolate } from "../i18n/LanguageContext";
 
 const todayIdx = getTodayIndex();
-const SHORT_DAYS = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"];
 
 function getWeekDateStr(dayIdx: number, weekOffset = 0): string {
   const now = new Date();
@@ -30,15 +30,15 @@ function getWeekDateStr(dayIdx: number, weekOffset = 0): string {
   return d.toISOString().split("T")[0];
 }
 
-function formatWeekLabel(weekOffset: number): string {
+function formatWeekLabel(offsetWeeks: number, locale: string): string {
   const monday = new Date();
   const todayDayOffset = (monday.getDay() + 6) % 7;
-  monday.setDate(monday.getDate() - todayDayOffset + weekOffset * 7);
+  monday.setDate(monday.getDate() - todayDayOffset + offsetWeeks * 7);
   monday.setHours(0, 0, 0, 0);
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
   const fmt = (d: Date) =>
-    d.toLocaleDateString("pl-PL", { day: "numeric", month: "short" });
+    d.toLocaleDateString(locale, { day: "numeric", month: "short" });
   return `${fmt(monday)}–${fmt(sunday)} ${sunday.getFullYear()}`;
 }
 
@@ -46,6 +46,7 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
   const insets = useSafeAreaInsets();
   const { toggleExercise, loading, reload, completedByDate } = useProgress();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { activeDays } = usePlan();
   const [selectedDay, setSelectedDay] = React.useState(todayIdx);
   const [weekOffset, setWeekOffset] = React.useState(0);
@@ -78,7 +79,7 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
       <View style={styles.header}>
         <View>
           <Text style={styles.subtitle}>MENTAL GYM</Text>
-          <Text style={styles.title}>Gym</Text>
+          <Text style={styles.title}>{t.gym.title}</Text>
         </View>
         <ProgressRing progress={progress} size={56} color={colors.critical} />
       </View>
@@ -95,7 +96,7 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
           </Text>
         </TouchableOpacity>
         <Text style={[styles.weekNavLabel, { color: colors.textMuted }]}>
-          {weekOffset === 0 ? "Aktualny tydzień" : formatWeekLabel(weekOffset)}
+          {weekOffset === 0 ? t.gym.currentWeek : formatWeekLabel(weekOffset, t.days.locale)}
         </Text>
         <TouchableOpacity
           onPress={() => setWeekOffset((o) => o + 1)}
@@ -172,7 +173,7 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
                   isDayDone && { color: colors.success, fontWeight: "700" },
                 ]}
               >
-                {isDayDone ? "✓" : SHORT_DAYS[i]}
+                {isDayDone ? "✓" : t.days.short[i]}
               </Text>
               {isDayPartial && (
                 <Text style={[styles.partialCount, { color: colors.success }]}>
@@ -203,7 +204,7 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
           />
         </View>
         <Text style={styles.progressText}>
-          {done} / {total} ćwiczeń
+          {interpolate(t.gym.exerciseProgress, { done, total })}
         </Text>
       </View>
 
@@ -223,9 +224,7 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
         {done === total && total > 0 && !isViewOnly && (
           <View style={styles.allDoneBanner}>
             <Text style={styles.allDoneEmoji}>🎉</Text>
-            <Text style={styles.allDoneText}>
-              Wszystkie ćwiczenia ukończone!
-            </Text>
+            <Text style={styles.allDoneText}>{t.gym.allDone}</Text>
           </View>
         )}
         {isViewOnly && (
@@ -239,7 +238,7 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
             ]}
           >
             <Text style={[styles.viewOnlyText, { color: colors.textMuted }]}>
-              👁 Tryb podglądu — ćwiczenia można ukończyć tylko w bieżącym dniu
+              {t.gym.viewOnly}
             </Text>
           </View>
         )}

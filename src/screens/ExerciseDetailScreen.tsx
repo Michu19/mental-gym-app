@@ -27,6 +27,7 @@ import {
   SectionLabel,
 } from "../components/ui";
 import { useTheme } from "../theme/ThemeContext";
+import { useTranslation } from "../i18n/LanguageContext";
 
 interface Props {
   route: {
@@ -40,6 +41,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
   const { exerciseId, dateStr, showToggle } = route.params;
   const ex = EXERCISES_BY_ID[exerciseId];
   const { colors, categoryColors } = useTheme();
+  const { t } = useTranslation();
   const accentColor = categoryColors[ex.category];
   const { completedByDate, toggleExercise } = useProgressContext();
   const todayStr = new Date().toISOString().split("T")[0];
@@ -61,10 +63,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
   const requestAndPickFromCamera = async (noteId: string) => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert(
-        "Brak uprawnień",
-        "Zezwól na dostęp do aparatu w ustawieniach.",
-      );
+      Alert.alert(t.exercise.permDenied, t.exercise.permCamera);
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -80,10 +79,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
   const requestAndPickFromGallery = async (noteId: string) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert(
-        "Brak uprawnień",
-        "Zezwól na dostęp do galerii w ustawieniach.",
-      );
+      Alert.alert(t.exercise.permDenied, t.exercise.permGallery);
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -125,7 +121,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
           style={styles.backBtn}
           activeOpacity={0.7}
         >
-          <Text style={[styles.backText, { color: accentColor }]}>‹ Wróć</Text>
+          <Text style={[styles.backText, { color: accentColor }]}>{t.exercise.back}</Text>
         </TouchableOpacity>
         <Text style={styles.navTitle}>#{ex.id}</Text>
       </View>
@@ -149,9 +145,9 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
           ]}
         >
           <Text style={styles.heroEmoji}>{ex.emoji}</Text>
-          <Text style={styles.heroName}>{ex.name}</Text>
+          <Text style={styles.heroName}>{t.exercises[ex.id].name}</Text>
           <View style={styles.heroBadges}>
-            <CategoryBadge category={ex.category} label={ex.categoryLabel} />
+            <CategoryBadge category={ex.category} label={t.categories[ex.category]} />
             <View style={styles.timePillLarge}>
               <Text style={styles.timePillText}>
                 ⏱ {formatTime(ex.timeMin, ex.timeMax)}
@@ -161,13 +157,13 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
         </View>
 
         {/* Description */}
-        <Text style={styles.description}>{ex.description}</Text>
+        <Text style={styles.description}>{t.exercises[ex.id].description}</Text>
 
         <Divider />
 
         {/* Timer */}
         <View style={styles.timerSection}>
-          <SectionLabel text="Timer" color={accentColor} />
+          <SectionLabel text={t.exercise.timer} color={accentColor} />
           <View style={styles.timerRow}>
             <View
               style={[
@@ -187,7 +183,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                   },
                 ]}
               >
-                {timer.finished ? "✓ Czas!" : timer.formatted}
+                {timer.finished ? t.exercise.timerDone : timer.formatted}
               </Text>
             </View>
             {!isViewOnly && (
@@ -199,10 +195,10 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                 >
                   <Text style={styles.timerBtnText}>
                     {timer.running
-                      ? "Pauza"
+                      ? t.exercise.pause
                       : timer.finished
-                        ? "Od nowa"
-                        : "Start"}
+                        ? t.exercise.restart
+                        : t.exercise.start}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -210,7 +206,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                   activeOpacity={0.75}
                   style={styles.timerBtnSecondary}
                 >
-                  <Text style={styles.timerBtnSecondaryText}>Reset</Text>
+                  <Text style={styles.timerBtnSecondaryText}>{t.exercise.reset}</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -237,9 +233,9 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
 
         {/* Prompt */}
         <View style={styles.section}>
-          <SectionLabel text="Prompt startowy" color={accentColor} />
+          <SectionLabel text={t.exercise.promptSection} color={accentColor} />
           <View style={[styles.promptBox, { borderLeftColor: accentColor }]}>
-            <Text style={styles.promptText}>{ex.prompt}</Text>
+            <Text style={styles.promptText}>{t.exercises[ex.id].prompt}</Text>
           </View>
         </View>
 
@@ -247,8 +243,8 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
 
         {/* Tip */}
         <View style={styles.section}>
-          <SectionLabel text="Wskazówka" />
-          <Text style={styles.tipText}>💬 {ex.tip}</Text>
+          <SectionLabel text={t.exercise.tipSection} />
+          <Text style={styles.tipText}>💬 {t.exercises[ex.id].tip}</Text>
         </View>
 
         <Divider />
@@ -257,7 +253,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
         <View style={styles.section}>
           <View style={styles.noteHeader}>
             <SectionLabel
-              text={dateStr ? "Notatki z tego dnia" : "Historia notatek"}
+              text={dateStr ? t.exercise.notesDay : t.exercise.notesAll}
               color={accentColor}
             />
             {visibleNotes.length > 0 && (
@@ -320,7 +316,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                     },
                   ]}
                 >
-                  Zapisz notatkę
+                  {t.exercise.notesSave}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -334,16 +330,14 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
               ]}
             >
               <Text style={styles.noteEmptyText}>
-                {dateStr
-                  ? "Brak notatek z tego dnia \u2014 dodaj pierwsz\u0105 \ud83d\udcdd"
-                  : "Brak notatek \u2014 dodaj pierwsz\u0105 \ud83d\udcdd"}
+                {dateStr ? t.exercise.notesEmptyDay : t.exercise.notesEmpty}
               </Text>
             </View>
           ) : (
             <View style={styles.noteList}>
               {visibleNotes.map((entry) => {
                 const date = new Date(entry.createdAt);
-                const label = date.toLocaleDateString("pl-PL", {
+                const label = date.toLocaleDateString(t.days.locale, {
                   day: "numeric",
                   month: "short",
                   year: "numeric",
@@ -377,12 +371,12 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                       <TouchableOpacity
                         onPress={() =>
                           Alert.alert(
-                            "Usuń notatkę",
-                            "Czy na pewno chcesz usunąć tę notatkę?",
+                            t.exercise.deleteNoteTitle,
+                            t.exercise.deleteNoteMsg,
                             [
-                              { text: "Anuluj", style: "cancel" },
+                              { text: t.exercise.cancel, style: "cancel" },
                               {
-                                text: "Usuń",
+                                text: t.exercise.delete,
                                 style: "destructive",
                                 onPress: () => deleteNote(entry.id),
                               },
@@ -417,12 +411,12 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                             onPress={() => setLightboxUri(uri)}
                             onLongPress={() =>
                               Alert.alert(
-                                "Usuń zdjęcie",
-                                "Czy usunąć to zdjęcie?",
+                                t.exercise.deletePhotoTitle,
+                                t.exercise.deletePhotoMsg,
                                 [
-                                  { text: "Anuluj", style: "cancel" },
+                                  { text: t.exercise.cancel, style: "cancel" },
                                   {
-                                    text: "Usuń",
+                                    text: t.exercise.delete,
                                     style: "destructive",
                                     onPress: () => deleteImage(entry.id, uri),
                                   },
@@ -454,7 +448,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                               { color: accentColor },
                             ]}
                           >
-                            📷 Aparat
+                            {t.exercise.photoCamera}
                           </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -471,7 +465,7 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                               { color: colors.textMuted },
                             ]}
                           >
-                            🖼 Galeria
+                            {t.exercise.photoGallery}
                           </Text>
                         </TouchableOpacity>
                       </View>

@@ -13,13 +13,7 @@ import { FontSize, Spacing, Radius, type ColorScheme } from "../theme";
 import { EXERCISES, type Category } from "../data/exercises";
 import { ExerciseCard } from "../components/ExerciseCard";
 import { useTheme } from "../theme/ThemeContext";
-
-const FILTERS: { key: Category | "all"; label: string }[] = [
-  { key: "all", label: "Wszystkie" },
-  { key: "kreatywnosc", label: "Kreatywność" },
-  { key: "krytyczne", label: "Krytyczne" },
-  { key: "mindfulness", label: "Mindfulness" },
-];
+import { useTranslation, interpolate } from "../i18n/LanguageContext";
 
 interface Props {
   navigation?: any;
@@ -29,6 +23,14 @@ export function LibraryScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<Category | "all">("all");
   const { colors, categoryColors } = useTheme();
+  const { t } = useTranslation();
+
+  const FILTERS: { key: Category | "all"; label: string }[] = [
+    { key: "all", label: t.library.filterAll },
+    { key: "kreatywnosc", label: t.library.filterCreativity },
+    { key: "krytyczne", label: t.library.filterCritical },
+    { key: "mindfulness", label: t.library.filterMindfulness },
+  ];
 
   const filtered =
     filter === "all"
@@ -41,7 +43,7 @@ export function LibraryScreen({ navigation }: Props) {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text style={styles.subtitle}>MENTAL GYM</Text>
-        <Text style={styles.title}>Biblioteka</Text>
+        <Text style={styles.title}>{t.library.title}</Text>
       </View>
 
       {/* Filter chips */}
@@ -83,7 +85,7 @@ export function LibraryScreen({ navigation }: Props) {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.count}>{filtered.length} ćwiczeń</Text>
+        <Text style={styles.count}>{interpolate(t.library.count, { count: filtered.length })}</Text>
         {filtered.map((ex) => (
           <ExerciseCard
             key={ex.id}
