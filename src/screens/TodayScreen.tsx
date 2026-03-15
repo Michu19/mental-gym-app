@@ -20,13 +20,26 @@ import { ProgressRing } from "../components/ui";
 import { useTheme } from "../theme/ThemeContext";
 
 const todayIdx = getTodayIndex();
+const SHORT_DAYS = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"];
 
-function getWeekDateStr(dayIdx: number): string {
+function getWeekDateStr(dayIdx: number, weekOffset = 0): string {
   const now = new Date();
   const todayDayOffset = (now.getDay() + 6) % 7; // Mon=0
   const d = new Date(now);
-  d.setDate(now.getDate() - todayDayOffset + dayIdx);
+  d.setDate(now.getDate() - todayDayOffset + dayIdx + weekOffset * 7);
   return d.toISOString().split("T")[0];
+}
+
+function formatWeekLabel(weekOffset: number): string {
+  const monday = new Date();
+  const todayDayOffset = (monday.getDay() + 6) % 7;
+  monday.setDate(monday.getDate() - todayDayOffset + weekOffset * 7);
+  monday.setHours(0, 0, 0, 0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const fmt = (d: Date) =>
+    d.toLocaleDateString("pl-PL", { day: "numeric", month: "short" });
+  return `${fmt(monday)}–${fmt(sunday)} ${sunday.getFullYear()}`;
 }
 
 export function TodayScreen({ navigation }: { navigation?: any }) {
@@ -35,8 +48,11 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
   const { colors } = useTheme();
   const { activeDays } = usePlan();
   const [selectedDay, setSelectedDay] = React.useState(todayIdx);
+  const [weekOffset, setWeekOffset] = React.useState(0);
 
-  const selectedDateStr = getWeekDateStr(selectedDay);
+  const todayDateStr = new Date().toISOString().split("T")[0];
+  const selectedDateStr = getWeekDateStr(selectedDay, weekOffset);
+  const isViewOnly = selectedDateStr !== todayDateStr;
   const selectedCompletedSet =
     completedByDate[selectedDateStr] ?? new Set<string>();
 
@@ -62,9 +78,34 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
       <View style={styles.header}>
         <View>
           <Text style={styles.subtitle}>MENTAL GYM</Text>
-          <Text style={styles.title}>Dziś</Text>
+          <Text style={styles.title}>Gym</Text>
         </View>
         <ProgressRing progress={progress} size={56} color={colors.critical} />
+      </View>
+
+      {/* Week navigation */}
+      <View style={styles.weekNavRow}>
+        <TouchableOpacity
+          onPress={() => setWeekOffset((o) => o - 1)}
+          activeOpacity={0.7}
+          style={styles.weekNavBtn}
+        >
+          <Text style={[styles.weekNavArrow, { color: colors.textSecondary }]}>
+            ‹
+          </Text>
+        </TouchableOpacity>
+        <Text style={[styles.weekNavLabel, { color: colors.textMuted }]}>
+          {weekOffset === 0 ? "Aktualny tydzień" : formatWeekLabel(weekOffset)}
+        </Text>
+        <TouchableOpacity
+          onPress={() => setWeekOffset((o) => o + 1)}
+          activeOpacity={0.7}
+          style={styles.weekNavBtn}
+        >
+          <Text style={[styles.weekNavArrow, { color: colors.textSecondary }]}>
+            ›
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Day selector */}
@@ -75,10 +116,11 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
         style={styles.dayScrollWrap}
       >
         {activeDays.map((d, i) => {
-          const isToday = i === todayIdx;
+          const isToday = weekOffset === 0 && i === todayIdx;
           const isSelected = i === selectedDay;
           const planDay = activeDays[i];
-          const dateStr = getWeekDateStr(i);
+          const dateStr = getWeekDateStr(i, weekOffset);
+          const isFuture = dateStr > todayDateStr;
           const dayCompletedSet = completedByDate[dateStr] ?? new Set<string>();
           const dayDoneCount = planDay.exerciseIds.filter((id) =>
             dayCompletedSet.has(id),
@@ -130,7 +172,7 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
                   isDayDone && { color: colors.success, fontWeight: "700" },
                 ]}
               >
-                {isDayDone ? "✓" : planDay.shortDay}
+                {isDayDone ? "✓" : SHORT_DAYS[i]}
               </Text>
               {isDayPartial && (
                 <Text style={[styles.partialCount, { color: colors.success }]}>
@@ -178,11 +220,26 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
         }
         showsVerticalScrollIndicator={false}
       >
-        {done === total && total > 0 && (
+        {done === total && total > 0 && !isViewOnly && (
           <View style={styles.allDoneBanner}>
             <Text style={styles.allDoneEmoji}>🎉</Text>
             <Text style={styles.allDoneText}>
               Wszystkie ćwiczenia ukończone!
+            </Text>
+          </View>
+        )}
+        {isViewOnly && (
+          <View
+            style={[
+              styles.viewOnlyBanner,
+              {
+                backgroundColor: colors.bgElevated,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text style={[styles.viewOnlyText, { color: colors.textMuted }]}>
+              👁 Tryb podglądu — ćwiczenia można ukończyć tylko w bieżącym dniu
             </Text>
           </View>
         )}
@@ -192,12 +249,12 @@ export function TodayScreen({ navigation }: { navigation?: any }) {
             exercise={ex}
             index={i}
             done={selectedCompletedSet.has(ex.id)}
-            onToggle={() => handleToggle(ex.id)}
+            onToggle={isViewOnly ? undefined : () => handleToggle(ex.id)}
             onPress={() =>
               navigation?.navigate("ExerciseDetail", {
                 exerciseId: ex.id,
                 dateStr: selectedDateStr,
-                showToggle: true,
+                showToggle: !isViewOnly,
               })
             }
           />
@@ -260,6 +317,24 @@ function makeStyles(colors: ColorScheme) {
     },
     todayDot: { width: 4, height: 4, borderRadius: 2, marginTop: 3 },
 
+    weekNavRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: 4,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    weekNavBtn: { padding: 4, minWidth: 32, alignItems: "center" },
+    weekNavArrow: { fontSize: 24, fontWeight: "300", lineHeight: 28 },
+    weekNavLabel: {
+      fontSize: FontSize.xs,
+      letterSpacing: 0.5,
+      textAlign: "center",
+      flex: 1,
+    },
+
     progressBarWrap: {
       flexDirection: "row",
       alignItems: "center",
@@ -300,6 +375,19 @@ function makeStyles(colors: ColorScheme) {
       fontSize: FontSize.md,
       color: colors.success,
       fontWeight: "500",
+    },
+
+    viewOnlyBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderRadius: Radius.md,
+      padding: Spacing.md,
+      marginBottom: Spacing.md,
+      borderWidth: 1,
+    },
+    viewOnlyText: {
+      fontSize: FontSize.sm,
+      lineHeight: 20,
     },
   });
 }

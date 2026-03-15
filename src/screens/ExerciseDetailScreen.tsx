@@ -44,17 +44,27 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
   const { completedByDate, toggleExercise } = useProgressContext();
   const todayStr = new Date().toISOString().split("T")[0];
   const effectiveDateStr = dateStr ?? todayStr;
+  const isViewOnly = effectiveDateStr !== todayStr;
   const done = (completedByDate[effectiveDateStr] ?? new Set<string>()).has(
     exerciseId,
   );
   const [draftNote, setDraftNote] = useState("");
-  const { notes, addNote, deleteNote, addImage, deleteImage } = useNoteHistory(exerciseId);
+  const { notes, addNote, deleteNote, addImage, deleteImage } =
+    useNoteHistory(exerciseId);
+  // When opened from TodayScreen (dateStr set): only show notes for that day.
+  // When opened from Library (no dateStr): show all notes.
+  const visibleNotes = dateStr
+    ? notes.filter((n) => n.date === dateStr)
+    : notes;
   const [lightboxUri, setLightboxUri] = useState<string | null>(null);
 
   const requestAndPickFromCamera = async (noteId: string) => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Brak uprawnień", "Zezwól na dostęp do aparatu w ustawieniach.");
+      Alert.alert(
+        "Brak uprawnień",
+        "Zezwól na dostęp do aparatu w ustawieniach.",
+      );
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -70,7 +80,10 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
   const requestAndPickFromGallery = async (noteId: string) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Brak uprawnień", "Zezwól na dostęp do galerii w ustawieniach.");
+      Alert.alert(
+        "Brak uprawnień",
+        "Zezwól na dostęp do galerii w ustawieniach.",
+      );
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -177,43 +190,47 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                 {timer.finished ? "✓ Czas!" : timer.formatted}
               </Text>
             </View>
-            <View style={styles.timerBtns}>
-              <TouchableOpacity
-                onPress={handleTimerToggle}
-                activeOpacity={0.75}
-                style={[styles.timerBtn, { backgroundColor: accentColor }]}
-              >
-                <Text style={styles.timerBtnText}>
-                  {timer.running
-                    ? "Pauza"
-                    : timer.finished
-                      ? "Od nowa"
-                      : "Start"}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleReset}
-                activeOpacity={0.75}
-                style={styles.timerBtnSecondary}
-              >
-                <Text style={styles.timerBtnSecondaryText}>Reset</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.timerOptions}>
-            {[ex.timeMin, ex.timeMax]
-              .filter((v, i, a) => a.indexOf(v) === i)
-              .map((min) => (
+            {!isViewOnly && (
+              <View style={styles.timerBtns}>
                 <TouchableOpacity
-                  key={min}
-                  onPress={() => timer.reset(min * 60)}
-                  activeOpacity={0.7}
-                  style={styles.timerOption}
+                  onPress={handleTimerToggle}
+                  activeOpacity={0.75}
+                  style={[styles.timerBtn, { backgroundColor: accentColor }]}
                 >
-                  <Text style={styles.timerOptionText}>{min} min</Text>
+                  <Text style={styles.timerBtnText}>
+                    {timer.running
+                      ? "Pauza"
+                      : timer.finished
+                        ? "Od nowa"
+                        : "Start"}
+                  </Text>
                 </TouchableOpacity>
-              ))}
+                <TouchableOpacity
+                  onPress={handleReset}
+                  activeOpacity={0.75}
+                  style={styles.timerBtnSecondary}
+                >
+                  <Text style={styles.timerBtnSecondaryText}>Reset</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
+          {!isViewOnly && (
+            <View style={styles.timerOptions}>
+              {[ex.timeMin, ex.timeMax]
+                .filter((v, i, a) => a.indexOf(v) === i)
+                .map((min) => (
+                  <TouchableOpacity
+                    key={min}
+                    onPress={() => timer.reset(min * 60)}
+                    activeOpacity={0.7}
+                    style={styles.timerOption}
+                  >
+                    <Text style={styles.timerOptionText}>{min} min</Text>
+                  </TouchableOpacity>
+                ))}
+            </View>
+          )}
         </View>
 
         <Divider />
@@ -239,8 +256,11 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
         {/* Notes */}
         <View style={styles.section}>
           <View style={styles.noteHeader}>
-            <SectionLabel text="Historia notatek" color={accentColor} />
-            {notes.length > 0 && (
+            <SectionLabel
+              text={dateStr ? "Notatki z tego dnia" : "Historia notatek"}
+              color={accentColor}
+            />
+            {visibleNotes.length > 0 && (
               <View
                 style={[
                   styles.noteCount,
@@ -251,58 +271,62 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                 ]}
               >
                 <Text style={[styles.noteCountText, { color: accentColor }]}>
-                  {notes.length}
+                  {visibleNotes.length}
                 </Text>
               </View>
             )}
           </View>
 
-          <View style={styles.noteAdd}>
-            <TextInput
-              style={[
-                styles.noteInput,
-                {
-                  borderColor:
-                    draftNote.length > 0 ? accentColor + "80" : colors.border,
-                },
-              ]}
-              multiline
-              placeholder="Zapisz przemyślenia po ćwiczeniu…"
-              placeholderTextColor={colors.textMuted}
-              value={draftNote}
-              onChangeText={setDraftNote}
-              textAlignVertical="top"
-            />
-            <TouchableOpacity
-              onPress={async () => {
-                await addNote(draftNote);
-                setDraftNote("");
-              }}
-              activeOpacity={0.75}
-              disabled={!draftNote.trim()}
-              style={[
-                styles.noteSaveBtn,
-                draftNote.trim()
-                  ? { backgroundColor: accentColor }
-                  : {
-                      backgroundColor: "transparent",
-                      borderWidth: 1,
-                      borderColor: colors.borderStrong,
-                    },
-              ]}
-            >
-              <Text
+          {!isViewOnly && (
+            <View style={styles.noteAdd}>
+              <TextInput
                 style={[
-                  styles.noteSaveBtnText,
-                  { color: draftNote.trim() ? colors.white : colors.textMuted },
+                  styles.noteInput,
+                  {
+                    borderColor:
+                      draftNote.length > 0 ? accentColor + "80" : colors.border,
+                  },
+                ]}
+                multiline
+                placeholder="Zapisz przemyślenia po ćwiczeniu…"
+                placeholderTextColor={colors.textMuted}
+                value={draftNote}
+                onChangeText={setDraftNote}
+                textAlignVertical="top"
+              />
+              <TouchableOpacity
+                onPress={async () => {
+                  await addNote(draftNote, dateStr);
+                  setDraftNote("");
+                }}
+                activeOpacity={0.75}
+                disabled={!draftNote.trim()}
+                style={[
+                  styles.noteSaveBtn,
+                  draftNote.trim()
+                    ? { backgroundColor: accentColor }
+                    : {
+                        backgroundColor: "transparent",
+                        borderWidth: 1,
+                        borderColor: colors.borderStrong,
+                      },
                 ]}
               >
-                Zapisz notatkę
-              </Text>
-            </TouchableOpacity>
-          </View>
+                <Text
+                  style={[
+                    styles.noteSaveBtnText,
+                    {
+                      color: draftNote.trim() ? colors.white : colors.textMuted,
+                    },
+                  ]}
+                >
+                  Zapisz notatkę
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
-          {notes.length === 0 ? (
+          {visibleNotes.length === 0 ? (
             <View
               style={[
                 styles.noteEmpty,
@@ -310,12 +334,14 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
               ]}
             >
               <Text style={styles.noteEmptyText}>
-                Brak notatek — dodaj pierwszą po ćwiczeniu 📝
+                {dateStr
+                  ? "Brak notatek z tego dnia \u2014 dodaj pierwsz\u0105 po ćwiczeniu \ud83d\udcdd"
+                  : "Brak notatek \u2014 dodaj pierwsz\u0105 po ćwiczeniu \ud83d\udcdd"}
               </Text>
             </View>
           ) : (
             <View style={styles.noteList}>
-              {notes.map((entry) => {
+              {visibleNotes.map((entry) => {
                 const date = new Date(entry.createdAt);
                 const label = date.toLocaleDateString("pl-PL", {
                   day: "numeric",
@@ -349,7 +375,20 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                         </Text>
                       </View>
                       <TouchableOpacity
-                        onPress={() => deleteNote(entry.id)}
+                        onPress={() =>
+                          Alert.alert(
+                            "Usuń notatkę",
+                            "Czy na pewno chcesz usunąć tę notatkę?",
+                            [
+                              { text: "Anuluj", style: "cancel" },
+                              {
+                                text: "Usuń",
+                                style: "destructive",
+                                onPress: () => deleteNote(entry.id),
+                              },
+                            ],
+                          )
+                        }
                         activeOpacity={0.7}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         style={[
@@ -377,10 +416,18 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                             key={uri}
                             onPress={() => setLightboxUri(uri)}
                             onLongPress={() =>
-                              Alert.alert("Usuń zdjęcie", "Czy usunąć to zdjęcie?", [
-                                { text: "Anuluj", style: "cancel" },
-                                { text: "Usuń", style: "destructive", onPress: () => deleteImage(entry.id, uri) },
-                              ])
+                              Alert.alert(
+                                "Usuń zdjęcie",
+                                "Czy usunąć to zdjęcie?",
+                                [
+                                  { text: "Anuluj", style: "cancel" },
+                                  {
+                                    text: "Usuń",
+                                    style: "destructive",
+                                    onPress: () => deleteImage(entry.id, uri),
+                                  },
+                                ],
+                              )
                             }
                             activeOpacity={0.8}
                           >
@@ -391,22 +438,44 @@ export function ExerciseDetailScreen({ route, navigation }: Props) {
                     )}
 
                     {/* Photo add buttons */}
-                    <View style={styles.photoActions}>
-                      <TouchableOpacity
-                        onPress={() => requestAndPickFromCamera(entry.id)}
-                        activeOpacity={0.7}
-                        style={[styles.photoBtn, { borderColor: accentColor + "66" }]}
-                      >
-                        <Text style={[styles.photoBtnText, { color: accentColor }]}>📷 Aparat</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => requestAndPickFromGallery(entry.id)}
-                        activeOpacity={0.7}
-                        style={[styles.photoBtn, { borderColor: colors.borderStrong }]}
-                      >
-                        <Text style={[styles.photoBtnText, { color: colors.textMuted }]}>🖼 Galeria</Text>
-                      </TouchableOpacity>
-                    </View>
+                    {!isViewOnly && (
+                      <View style={styles.photoActions}>
+                        <TouchableOpacity
+                          onPress={() => requestAndPickFromCamera(entry.id)}
+                          activeOpacity={0.7}
+                          style={[
+                            styles.photoBtn,
+                            { borderColor: accentColor + "66" },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.photoBtnText,
+                              { color: accentColor },
+                            ]}
+                          >
+                            📷 Aparat
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => requestAndPickFromGallery(entry.id)}
+                          activeOpacity={0.7}
+                          style={[
+                            styles.photoBtn,
+                            { borderColor: colors.borderStrong },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.photoBtnText,
+                              { color: colors.textMuted },
+                            ]}
+                          >
+                            🖼 Galeria
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
                   </View>
                 );
               })}

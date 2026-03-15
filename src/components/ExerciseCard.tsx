@@ -25,7 +25,7 @@ interface Props {
   exercise: Exercise;
   index: number;
   done: boolean;
-  onToggle: () => void;
+  onToggle?: () => void;
   onPress?: () => void;
   compact?: boolean;
 }
@@ -192,7 +192,11 @@ export function ExerciseCard({
             )}
           </View>
 
-          <CheckButton done={done} onPress={onToggle} style={styles.checkBtn} />
+          <CheckButton
+            done={done}
+            onPress={onToggle ?? (() => {})}
+            style={styles.checkBtn}
+          />
         </View>
       )}
 
@@ -204,7 +208,7 @@ export function ExerciseCard({
       )}
 
       {/* Tap to complete when collapsed */}
-      {!onPress && !expanded && !done && (
+      {!onPress && !expanded && !done && onToggle && (
         <TouchableOpacity
           onPress={onToggle}
           activeOpacity={0.7}

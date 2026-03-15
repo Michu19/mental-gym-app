@@ -1,5 +1,5 @@
 // src/screens/StatsScreen.tsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,10 +8,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { FontSize, Spacing, Radius, type ColorScheme } from "../theme";
-import { KEY_PREFIX } from "../hooks/useProgress";
 import { useProgressContext as useProgress } from "../hooks/ProgressContext";
 import { useTheme } from "../theme/ThemeContext";
 
@@ -47,24 +45,20 @@ function formatWeekLabel(offsetWeeks: number): string {
 
 export function StatsScreen() {
   const insets = useSafeAreaInsets();
-  const { streak, completedCount } = useProgress();
+  const { streak, completedCount, completedByDate } = useProgress();
   const { isDark, colors, toggleTheme } = useTheme();
   const [weekOffset, setWeekOffset] = useState(0);
-  const [weekActivity, setWeekActivity] = useState<boolean[]>([]);
 
   const weekDates = getWeekDates(weekOffset);
   const todayDate = new Date().toISOString().split("T")[0];
 
-  useEffect(() => {
-    (async () => {
-      const allKeys = await AsyncStorage.getAllKeys();
-      const results = weekDates.map((date) =>
-        allKeys.some((k) => k.startsWith(`${KEY_PREFIX}${date}:`)),
-      );
-      setWeekActivity(results);
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [streak, weekOffset]); // re-check when streak changes or week navigated
+  // Derived synchronously – completedByDate holds all history
+  const weekCounts = weekDates.map((date) => completedByDate[date]?.size ?? 0);
+  const weekTotal = weekCounts.reduce((s, n) => s + n, 0);
+  const totalAllTime = Object.values(completedByDate).reduce(
+    (s, set) => s + set.size,
+    0,
+  );
 
   const styles = makeStyles(colors);
 
@@ -91,24 +85,37 @@ export function StatsScreen() {
           </Text>
         </View>
 
-        {/* Today's progress */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Dziś</Text>
-          <View style={styles.todayRow}>
-            {[0, 1, 2].map((i) => (
-              <View
-                key={i}
-                style={[
-                  styles.todayDot,
-                  i < completedCount && {
-                    backgroundColor: colors.success,
-                    borderColor: colors.success,
-                  },
-                ]}
-              />
-            ))}
-            <Text style={styles.todayText}>{completedCount} / 3 ćwiczeń</Text>
+        {/* Section heading */}
+        <Text style={styles.sectionHeading}>Ukończone zadania</Text>
+
+        {/* Today + week total */}
+        <View style={styles.statsRow}>
+          <View style={[styles.card, styles.statCard]}>
+            <Text style={styles.cardTitle}>Dziś</Text>
+            <Text
+              style={[styles.weekStatNumber, { color: colors.textPrimary }]}
+            >
+              {completedCount}
+            </Text>
           </View>
+          <View style={[styles.card, styles.statCard]}>
+            <Text style={styles.cardTitle} numberOfLines={1}>
+              {weekOffset === 0 ? "Ten tydzień" : "Tydzień"}
+            </Text>
+            <Text style={[styles.weekStatNumber, { color: colors.success }]}>
+              {weekTotal}
+            </Text>
+          </View>
+        </View>
+
+        {/* All time */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Łącznie wszystkie tygodnie</Text>
+          <Text
+            style={[styles.weekStatNumber, { color: colors.textSecondary }]}
+          >
+            {totalAllTime}
+          </Text>
         </View>
 
         {/* Weekly heatmap */}
@@ -129,18 +136,12 @@ export function StatsScreen() {
               {formatWeekLabel(weekOffset)}
             </Text>
             <TouchableOpacity
-              onPress={() => setWeekOffset((o) => Math.min(0, o + 1))}
+              onPress={() => setWeekOffset((o) => o + 1)}
               activeOpacity={0.7}
               style={styles.weekNavBtn}
             >
               <Text
-                style={[
-                  styles.weekNavArrow,
-                  {
-                    color:
-                      weekOffset >= 0 ? colors.textMuted : colors.textSecondary,
-                  },
-                ]}
+                style={[styles.weekNavArrow, { color: colors.textSecondary }]}
               >
                 ›
               </Text>
@@ -148,15 +149,13 @@ export function StatsScreen() {
           </View>
           <View style={styles.heatmapRow}>
             {weekDates.map((date, i) => {
-              const active = weekActivity[i] ?? false;
+              const count = weekCounts[i];
+              const active = count > 0;
               const isToday = date === todayDate;
-              const weekday = new Date(date + "T12:00:00").getDay();
-              const dayIdx = (weekday + 6) % 7; // 0=Mon
+              const isFuture = date > todayDate;
               return (
                 <View key={date} style={styles.heatmapCol}>
-                  <Text style={styles.heatmapDayLabel}>
-                    {SHORT_DAYS[dayIdx]}
-                  </Text>
+                  <Text style={styles.heatmapDayLabel}>{SHORT_DAYS[i]}</Text>
                   <View
                     style={[
                       styles.heatmapBox,
@@ -165,13 +164,14 @@ export function StatsScreen() {
                         borderColor: colors.success,
                       },
                       isToday && !active && { borderColor: colors.critical },
+                      isFuture && { opacity: 0.35 },
                     ]}
                   >
                     {active && (
                       <Text
-                        style={[styles.heatmapCheck, { color: colors.success }]}
+                        style={[styles.heatmapCount, { color: colors.success }]}
                       >
-                        ✓
+                        {count}
                       </Text>
                     )}
                   </View>
@@ -272,6 +272,34 @@ function makeStyles(colors: ColorScheme) {
       marginLeft: 4,
     },
 
+    sectionHeading: {
+      fontSize: FontSize.xs,
+      color: colors.textMuted,
+      letterSpacing: 2,
+      textTransform: "uppercase",
+      paddingHorizontal: 2,
+      marginBottom: -4,
+    },
+    statsRow: {
+      flexDirection: "row",
+      gap: Spacing.md,
+    },
+    statCard: {
+      flex: 1,
+      gap: 4,
+    },
+
+    weekStatRow: { flexDirection: "row", alignItems: "baseline", gap: 8 },
+    weekStatNumber: {
+      fontSize: 48,
+      fontWeight: "200",
+      lineHeight: 56,
+    },
+    weekStatLabel: {
+      fontSize: FontSize.sm,
+      color: colors.textMuted,
+    },
+
     weekNavRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -306,6 +334,7 @@ function makeStyles(colors: ColorScheme) {
       justifyContent: "center",
     },
     heatmapCheck: { fontSize: 11, fontWeight: "700" },
+    heatmapCount: { fontSize: 13, fontWeight: "600" },
 
     themeBtn: {
       flexDirection: "row",

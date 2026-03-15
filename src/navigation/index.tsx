@@ -33,7 +33,7 @@ export type RootStackParamList = {
 };
 
 export type TabParamList = {
-  Today: undefined;
+  Gym: undefined;
   Plan: undefined;
   Library: undefined;
   Stats: undefined;
@@ -65,7 +65,7 @@ function TabNavigator() {
         tabBarLabelStyle: styles.tabLabel,
         tabBarIcon: ({ color, focused }) => {
           const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
-            Today: focused ? "today" : "today-outline",
+            Gym: focused ? "barbell" : "barbell-outline",
             Plan: focused ? "calendar" : "calendar-outline",
             Library: focused ? "library" : "library-outline",
             Stats: focused ? "bar-chart" : "bar-chart-outline",
@@ -75,9 +75,9 @@ function TabNavigator() {
       })}
     >
       <Tab.Screen
-        name="Today"
+        name="Gym"
         component={TodayScreen}
-        options={{ tabBarLabel: "Dziś" }}
+        options={{ tabBarLabel: "Gym" }}
       />
       <Tab.Screen
         name="Plan"

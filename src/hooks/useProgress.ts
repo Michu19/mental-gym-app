@@ -1,7 +1,11 @@
 // src/hooks/useProgress.ts
 import { useState, useEffect, useCallback, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Paths, File as FSFile, Directory as FSDirectory } from "expo-file-system";
+import {
+  Paths,
+  File as FSFile,
+  Directory as FSDirectory,
+} from "expo-file-system";
 
 // Key format: progress:YYYY-MM-DD:exerciseId
 export const KEY_PREFIX = "progress:";
@@ -51,22 +55,18 @@ export function useProgress() {
       );
       setCompletedToday(completed);
 
-      // Build per-day completion map for current week
-      const weekMap: Record<string, Set<string>> = {};
-      const nowDate = new Date();
-      const todayDayOffset = (nowDate.getDay() + 6) % 7; // Mon=0
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(nowDate);
-        d.setDate(nowDate.getDate() - todayDayOffset + i);
-        const dateStr = d.toISOString().split("T")[0];
-        const dayKeys = allKeys.filter((k) =>
-          k.startsWith(`${KEY_PREFIX}${dateStr}:`),
-        );
-        weekMap[dateStr] = new Set(
-          dayKeys.map((k) => k.split(":")[2]).filter(Boolean),
-        );
+      // Build per-day completion map for ALL dates that exist in storage
+      const progressKeys = allKeys.filter((k) => k.startsWith(KEY_PREFIX));
+      const fullMap: Record<string, Set<string>> = {};
+      for (const k of progressKeys) {
+        const parts = k.split(":");
+        const dateStr = parts[1];
+        const exerciseId = parts[2];
+        if (!dateStr || !exerciseId) continue;
+        if (!fullMap[dateStr]) fullMap[dateStr] = new Set();
+        fullMap[dateStr].add(exerciseId);
       }
-      setCompletedByDate(weekMap);
+      setCompletedByDate(fullMap);
 
       // Compute streak using the same allKeys fetch
       const streakCount = computeStreakFromKeys(allKeys);
@@ -175,6 +175,7 @@ export interface NoteEntry {
   id: string; // timestamp string (used as unique key)
   text: string;
   createdAt: string; // ISO date string
+  date?: string; // YYYY-MM-DD — day of the exercise this note belongs to
   imageUris?: string[]; // local file:// URIs of attached photos
 }
 
@@ -202,12 +203,13 @@ export function useNoteHistory(exerciseId: string) {
   );
 
   const addNote = useCallback(
-    async (text: string) => {
+    async (text: string, date?: string) => {
       if (!text.trim()) return;
       const entry: NoteEntry = {
         id: Date.now().toString(),
         text: text.trim(),
         createdAt: new Date().toISOString(),
+        date,
         imageUris: [],
       };
       await persist([entry, ...notes]);
@@ -221,7 +223,10 @@ export function useNoteHistory(exerciseId: string) {
       const entry = notes.find((n) => n.id === id);
       if (entry?.imageUris) {
         for (const uri of entry.imageUris) {
-          try { const f = new FSFile(uri); if (f.exists) f.delete(); } catch {}
+          try {
+            const f = new FSFile(uri);
+            if (f.exists) f.delete();
+          } catch {}
         }
       }
       await persist(notes.filter((n) => n.id !== id));
@@ -250,7 +255,10 @@ export function useNoteHistory(exerciseId: string) {
 
   const deleteImage = useCallback(
     async (noteId: string, uri: string) => {
-      try { const f = new FSFile(uri); if (f.exists) f.delete(); } catch {}
+      try {
+        const f = new FSFile(uri);
+        if (f.exists) f.delete();
+      } catch {}
       const next = notes.map((n) =>
         n.id === noteId
           ? { ...n, imageUris: (n.imageUris ?? []).filter((u) => u !== uri) }
